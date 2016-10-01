@@ -33,9 +33,15 @@
         android:orientation="horizontal">
 
         <RadioButton
-            android:id="@+id/rb_local_video"
+            android:id="@+id/rb_local_home"
             style="@style/rp_theme"
             android:drawableTop="@drawable/rb_local_video_draw_selector"
+            android:text="首页"/>
+
+        <RadioButton
+            android:id="@+id/rb_local_video"
+            style="@style/rp_theme"
+            android:drawableTop="@drawable/rb_local_audio_draw_selector"
             android:text="本地视频"/>
 
         <RadioButton
@@ -52,9 +58,9 @@
 
         <RadioButton
             android:id="@+id/rb_net__audio"
-        style="@style/rp_theme"
-        android:drawableTop="@drawable/rb_net_audio_draw_selector"
-        android:text="网络音乐"/>
+            style="@style/rp_theme"
+            android:drawableTop="@drawable/rb_net_audio_draw_selector"
+            android:text="网络音乐"/>
 
 
     </RadioGroup>

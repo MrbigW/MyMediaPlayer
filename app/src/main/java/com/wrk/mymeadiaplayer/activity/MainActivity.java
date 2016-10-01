@@ -9,6 +9,7 @@ import android.widget.RadioGroup;
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.fragment.AudioFrament;
 import com.wrk.mymeadiaplayer.fragment.BaseFragment;
+import com.wrk.mymeadiaplayer.fragment.HomeFragment;
 import com.wrk.mymeadiaplayer.fragment.NetAudioFrament;
 import com.wrk.mymeadiaplayer.fragment.NetVideoFrament;
 import com.wrk.mymeadiaplayer.fragment.VideoFrament;
@@ -45,7 +46,7 @@ public class MainActivity extends FragmentActivity {
         // 对RadioGroup设置监听
         rg_main.setOnCheckedChangeListener(new MyOncheckedChangeListener());
 
-        rg_main.check(R.id.rb_local_video);
+        rg_main.check(R.id.rb_local_home);
 
     }
 
@@ -54,17 +55,20 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
             switch (checkedId) {
-                case R.id.rb_local_video:
+                case R.id.rb_local_home:
                     pos = 0;
                     break;
-                case R.id.rb_local_audio:
+                case R.id.rb_local_video:
                     pos = 1;
                     break;
-                case R.id.rb_net_video:
+                case R.id.rb_local_audio:
                     pos = 2;
                     break;
-                case R.id.rb_net__audio:
+                case R.id.rb_net_video:
                     pos = 3;
+                    break;
+                case R.id.rb_net__audio:
+                    pos = 4;
                     break;
             }
 
@@ -79,6 +83,7 @@ public class MainActivity extends FragmentActivity {
      */
     private void initFragments() {
         mFragments = new ArrayList<>();
+        mFragments.add(new HomeFragment());
         mFragments.add(new VideoFrament());
         mFragments.add(new AudioFrament());
         mFragments.add(new NetVideoFrament());
