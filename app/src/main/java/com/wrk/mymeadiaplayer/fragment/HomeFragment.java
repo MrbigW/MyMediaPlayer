@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.homepagefragment.TestDataFragment;
@@ -92,6 +93,11 @@ public class HomeFragment extends BaseFragment {
             @Override
             public int getCount() {
                 return mContents.size();
+            }
+
+            @Override
+            public void destroyItem(ViewGroup container, int position, Object object) {
+//                super.destroyItem(container, position, object);
             }
         };
 

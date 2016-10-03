@@ -41,8 +41,8 @@
         android:id="@+id/lv_frg_data"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/vp_frg_image">
-
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
     </com.wrk.mymeadiaplayer.view.MyListView>
 
 </RelativeLayout>

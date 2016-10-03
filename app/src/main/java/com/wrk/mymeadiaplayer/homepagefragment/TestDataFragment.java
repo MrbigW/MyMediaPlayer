@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -13,20 +14,21 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wrk.mymeadiaplayer.R;
+import com.wrk.mymeadiaplayer.adapter.MyDataFragAdapter;
 import com.wrk.mymeadiaplayer.bean.NetMedia;
 import com.wrk.mymeadiaplayer.fragment.BaseFragment;
 import com.wrk.mymeadiaplayer.loader.ImageLoader;
 import com.wrk.mymeadiaplayer.util.DensityUtil;
+import com.wrk.mymeadiaplayer.view.MyListView;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -46,6 +48,9 @@ import java.util.List;
  */
 
 public class TestDataFragment extends BaseFragment {
+
+    //  每页最多显示的数目
+    private final static int SHOW_ITEM_MAX = 8;
 
     private static final String URLPATH = "http://api.m.mtime.cn/PageSubArea/TrailerList.api";
 
@@ -104,9 +109,11 @@ public class TestDataFragment extends BaseFragment {
     private ViewPager vp_frg_image;
     private TextView tv_main_title;
     private LinearLayout ll_main_point;
-    private ListView lv_frg_data;
+    private MyListView lv_frg_data;
     private ArrayList<ImageView> mImageViews;
     private ImageLoader mImageLoader;
+
+    private MyDataFragAdapter adapter;
 
     private List<NetMedia> mNetMedias;
 
@@ -127,9 +134,10 @@ public class TestDataFragment extends BaseFragment {
         vp_frg_image = (ViewPager) view.findViewById(R.id.vp_frg_image);
         tv_main_title = (TextView) view.findViewById(R.id.tv_main_title);
         ll_main_point = (LinearLayout) view.findViewById(R.id.ll_main_point);
-        lv_frg_data = (ListView) view.findViewById(R.id.lv_frg_data);
+        lv_frg_data = (MyListView) view.findViewById(R.id.lv_frg_data);
         mImageLoader = new ImageLoader(mContext);
         mNetMedias = new ArrayList<>();
+        mImageViews = new ArrayList<>();
 
         return view;
     }
@@ -137,48 +145,10 @@ public class TestDataFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
-        mImageViews = new ArrayList<>();
 
-        for (int i = 0; i < imageIds.length; i++) {
-            ImageView imag = new ImageView(mContext);
-            imag.setBackgroundResource(imageIds[i]);
-            mImageViews.add(imag);
-
-
-            //  添加指示点，有多少个页面就添加多少个
-            ImageView point = new ImageView(mContext);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    DensityUtil.dip2px(mContext, 8), DensityUtil.dip2px(mContext, 8));
-
-            point.setBackgroundResource(R.drawable.point_selector);
-
-            params.leftMargin = DensityUtil.dip2px(mContext, 10);
-            point.setEnabled(false);
-
-
-            point.setLayoutParams(params);
-            ll_main_point.addView(point);
-        }
-
-        tv_main_title.setText(imageDescriptions[0]);
-        vp_frg_image.addOnPageChangeListener(new MyonPageChangeListener());
-
-        //  设置一开始就可以向左滑动
-        int item = MAX / 2 - (MAX / 2) % mImageViews.size();
-        vp_frg_image.setCurrentItem(item); // 该方法是设置viewpager显示的位置
-        vp_frg_image.setAdapter(new MyPagerAdapter());
-        ll_main_point.getChildAt(pos).setEnabled(true);
-        //  利用handler开始循环滑动
-        if (!isFragmentDestroyView) {
-            ll_main_point.getChildAt(0).setEnabled(true);
-        } else {
-            ll_main_point.getChildAt(pos).setEnabled(false);
-        }
-
-        handler.sendEmptyMessageDelayed(0, 3000);
-
-
+        // 下载数据
         startAsyncTask();
+
 
     }
 
@@ -186,74 +156,69 @@ public class TestDataFragment extends BaseFragment {
      * 开启异步任务加载数据
      */
     private void startAsyncTask() {
-        new AsyncTask<String, Void, ArrayList<NetMedia>>() {
+        new AsyncTask<String, Void, List<NetMedia>>() {
 
 
             @Override
-            protected ArrayList<NetMedia> doInBackground(String... params) {
-                return getJsonData(params[0]);
+            protected List<NetMedia> doInBackground(String... params) {
+                return getPortJsonData(params[0]);
             }
 
             @Override
-            protected void onPostExecute(ArrayList<NetMedia> medias) {
+            protected void onPostExecute(List<NetMedia> medias) {
                 super.onPostExecute(medias);
                 mNetMedias = medias;
                 Log.e("222", medias.toString());
-                lv_frg_data.setAdapter(new MyAdapter());
 
+
+                for (int i = 0; i < 5; i++) {
+                    String url = mNetMedias.get(i).getCoverImg();
+                    ImageView imag = new ImageView(mContext);
+                    imag.setTag(url);
+                    mImageLoader.showImageByAsyncTask(imag, mNetMedias.get(i).getCoverImg());
+
+                    mImageViews.add(imag);
+
+
+                    //  添加指示点，有多少个页面就添加多少个
+                    ImageView point = new ImageView(mContext);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            DensityUtil.dip2px(mContext, 8), DensityUtil.dip2px(mContext, 8));
+
+                    point.setBackgroundResource(R.drawable.point_selector);
+
+                    params.leftMargin = DensityUtil.dip2px(mContext, 10);
+                    point.setEnabled(false);
+
+
+                    point.setLayoutParams(params);
+                    ll_main_point.addView(point);
+                }
+
+                tv_main_title.setText(mNetMedias.get(0).getMovieName());
+                vp_frg_image.addOnPageChangeListener(new MyonPageChangeListener());
+
+                //  设置一开始就可以向左滑动
+                int item = MAX / 2 - (MAX / 2) % mImageViews.size();
+                vp_frg_image.setCurrentItem(item); // 该方法是设置viewpager显示的位置
+                vp_frg_image.setAdapter(new MyPagerAdapter());
+                ll_main_point.getChildAt(pos).setEnabled(true);
+                //  利用handler开始循环滑动
+                if (!isFragmentDestroyView) {
+                    ll_main_point.getChildAt(0).setEnabled(true);
+                } else {
+                    ll_main_point.getChildAt(pos).setEnabled(false);
+                }
+                handler.sendEmptyMessageDelayed(0, 3000);
+
+//                adapter = new MyDataFragAdapter(mContext, mNetMedias);
+
+//                lv_frg_data.setAdapter(adapter);
+                showListView(mNetMedias);
             }
+
         }.execute(URLPATH);
 
-    }
-
-    class MyAdapter extends BaseAdapter {
-
-        @Override
-        public int getCount() {
-            return mNetMedias.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return mNetMedias.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder viewHolder = null;
-            if (convertView == null) {
-                viewHolder = new ViewHolder();
-                convertView = View.inflate(mContext, R.layout.testdata_item_layout, null);
-
-                viewHolder.iv_data_item_icon = (ImageView) convertView.findViewById(R.id.iv_data_item_icon);
-                viewHolder.tv_data_item_content = (TextView) convertView.findViewById(R.id.tv_data_item_content);
-                viewHolder.tv_data_item_title = (TextView) convertView.findViewById(R.id.tv_data_item_title);
-
-                convertView.setTag(viewHolder);
-            } else {
-                viewHolder = (ViewHolder) convertView.getTag();
-            }
-            String url = mNetMedias.get(position).getCoverImg();
-            viewHolder.iv_data_item_icon.setImageResource(R.drawable.video_default);
-            viewHolder.iv_data_item_icon.setBackground(getActivity().getDrawable(R.drawable.center_collect_play));
-            viewHolder.iv_data_item_icon.setTag(url);
-
-            mImageLoader.showImageByAsyncTask(viewHolder.iv_data_item_icon, mNetMedias.get(position).getCoverImg());
-            viewHolder.tv_data_item_title.setText(mNetMedias.get(position).getMovieName());
-            viewHolder.tv_data_item_content.setText(mNetMedias.get(position).getSummary());
-
-            return convertView;
-        }
-
-        class ViewHolder {
-            private TextView tv_data_item_title, tv_data_item_content;
-            private ImageView iv_data_item_icon;
-        }
     }
 
 
@@ -280,7 +245,8 @@ public class TestDataFragment extends BaseFragment {
         public void onPageSelected(int position) {
             int nowPosition = position % mImageViews.size();
             pos = nowPosition;
-            String title = imageDescriptions[nowPosition];
+//            String title = imageDescriptions[nowPosition];
+            String title = mNetMedias.get(nowPosition).getMovieName();
             tv_main_title.setText(title);
 
             ll_main_point.getChildAt(nowPosition).setEnabled(true);
@@ -339,6 +305,7 @@ public class TestDataFragment extends BaseFragment {
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
             final ImageView image = mImageViews.get(position % mImageViews.size());
+
             container.addView(image);
 
             //  对imageview进行触摸和点击监听
@@ -362,7 +329,7 @@ public class TestDataFragment extends BaseFragment {
             image.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(mContext, imageDescriptions[((int) image.getTag()) % mImageViews.size()], Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, mNetMedias.get(((int) image.getTag()) % mImageViews.size()).getMovieName(), Toast.LENGTH_SHORT).show();
                 }
             });
             return image;
@@ -410,56 +377,121 @@ public class TestDataFragment extends BaseFragment {
         super.onDestroyView();
     }
 
+
+    public void showListView(List<NetMedia> list) {
+        if (adapter == null) {
+            lv_frg_data.setInterface(new MyListView.ILoadListenner() {
+                @Override
+                public void onLoad() {
+                    new AsyncTask<String, Void, List<NetMedia>>() {
+                        @Override
+                        protected List<NetMedia> doInBackground(String... params) {
+                            SystemClock.sleep(1000);
+                            return getPortJsonData(params[0]);
+                        }
+
+                        @Override
+                        protected void onPostExecute(List<NetMedia> medias) {
+                            super.onPostExecute(medias);
+                            showListView(medias);
+                            lv_frg_data.loadComplete();
+                        }
+                    }.execute(URLPATH);
+                }
+
+                @Override
+                public void onReflash() {
+                    new AsyncTask<String, Void, List<NetMedia>>() {
+
+                        @Override
+                        protected List<NetMedia> doInBackground(String... params) {
+                            tmp = 0;
+                            SystemClock.sleep(1000);
+                            return getPortJsonData(params[0]);
+                        }
+
+                        @Override
+                        protected void onPostExecute(List<NetMedia> medias) {
+                            super.onPostExecute(medias);
+                            showListView(medias);
+                            lv_frg_data.reflashComplete();
+                        }
+                    }.execute(URLPATH);
+                }
+            });
+            adapter = new MyDataFragAdapter(mContext, list);
+            lv_frg_data.setAdapter(adapter);
+        } else {
+            adapter.onDataChange(list);
+        }
+    }
+
     /**
-     * 通过Url将返回的数据解析成json格式数据，并转换为我们所封装的NewsBean
+     * 获取最大item数目的Json数据
      *
      * @param Url
      * @return
      */
-    private ArrayList<NetMedia> getJsonData(String Url) {
-        ArrayList<NetMedia> newsList = new ArrayList<>();
+    int tmp = 0;
+
+    private List<NetMedia> getPortJsonData(String Url) {
+        List<NetMedia> newsList = new ArrayList<>();
+        String jsonString = null;
         try {
-
-            String jsonString = readStream(new URL(Url).openStream());
-
-
-            //  Gson截下Json,需要变量名一一对应
-//            Gson gson = new Gson();
-//            gson.fromJson(jsonString,new TypeToken<NewsBean>(){}.getType());
-
-//              原生API解析Json
-            //  得到返回的JsonObj;
+            jsonString = readStream(new URL(Url).openStream());
             JSONObject jsonObject = new JSONObject(jsonString);
-
-            //  得到JsonObj对象中data的JsonArray
             JSONArray jsonArray = jsonObject.getJSONArray("trailers");
-
-            Log.e("222", jsonArray.toString());
-            //  得到JsonArray中的数据并将其赋给NewsBean对象
-            NetMedia netMedia;
-            for (int i = 0; i < jsonArray.length(); i++) {
-                jsonObject = jsonArray.getJSONObject(i);
-                Log.e("222", jsonObject.toString());
-                netMedia = new NetMedia();
-                netMedia.setCoverImg(jsonObject.getString("coverImg"));
-                netMedia.setHightUrl(jsonObject.getString("hightUrl"));
-                netMedia.setId(jsonObject.getInt("id"));
-                netMedia.setMovieId(jsonObject.getInt("movieId"));
-                netMedia.setMovieName(jsonObject.getString("movieName"));
-                netMedia.setSummary(jsonObject.getString("summary"));
-                netMedia.setUrl(jsonObject.getString("url"));
-                netMedia.setVideoLength(jsonObject.getInt("videoLength"));
-                netMedia.setVideoTitle(jsonObject.getString("videoTitle"));
-//                netMedia.setType((List<String>) jsonObject.get("type"));
-                Log.e("222", netMedia.toString());
-                newsList.add(netMedia);
+            if (SHOW_ITEM_MAX > jsonArray.length()) {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    getNewsList(newsList, jsonArray, jsonObject, i);
+                }
+            } else {
+                if (tmp + SHOW_ITEM_MAX >= jsonArray.length()) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        getNewsList(newsList, jsonArray, jsonObject, i);
+                    }
+                } else {
+                    for (int i = 0; i < tmp + SHOW_ITEM_MAX; i++) {
+                        getNewsList(newsList, jsonArray, jsonObject, i);
+                    }
+                }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        tmp += SHOW_ITEM_MAX;
         return newsList;
+    }
+
+    /**
+     * 为newsList赋值
+     *
+     * @param newsList
+     * @param jsonArray
+     * @param jsonObject
+     * @param count
+     */
+    private void getNewsList(List<NetMedia> newsList, JSONArray jsonArray, JSONObject jsonObject, int count) {
+        try {
+            jsonObject = jsonArray.getJSONObject(count);
+            Log.e("222", jsonObject.toString());
+            NetMedia netMedia = new NetMedia();
+            netMedia.setCoverImg(jsonObject.getString("coverImg"));
+            netMedia.setHightUrl(jsonObject.getString("hightUrl"));
+            netMedia.setId(jsonObject.getInt("id"));
+            netMedia.setMovieId(jsonObject.getInt("movieId"));
+            netMedia.setMovieName(jsonObject.getString("movieName"));
+            netMedia.setSummary(jsonObject.getString("summary"));
+            netMedia.setUrl(jsonObject.getString("url"));
+            netMedia.setVideoLength(jsonObject.getInt("videoLength"));
+            netMedia.setVideoTitle(jsonObject.getString("videoTitle"));
+//                netMedia.setType((List<String>) jsonObject.get("type"));
+            Log.e("222", netMedia.toString());
+            newsList.add(netMedia);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
