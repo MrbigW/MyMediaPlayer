@@ -100,10 +100,9 @@ public class TestDataFragment extends BaseFragment {
             vp_frg_image.setCurrentItem(item);
 
             //利用自己给自己传消息来完成viewpager的循环滚动
-
-            handler.sendEmptyMessageDelayed(0, 3000);
-
-
+            if (!isFragmentDestroyView) {
+                handler.sendEmptyMessageDelayed(0, 3000);
+            }
         }
     };
 
@@ -130,6 +129,7 @@ public class TestDataFragment extends BaseFragment {
 
     @Override
     public View initView() {
+
         Log.e("444", pos + "");
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.testdatafragment_layout, null);
@@ -141,6 +141,8 @@ public class TestDataFragment extends BaseFragment {
         mImageLoader = new ImageLoader(mContext);
         mNetMedias = new ArrayList<>();
         mImageViews = new ArrayList<>();
+
+//        startAsyncTask();
 
         return view;
     }
@@ -175,16 +177,12 @@ public class TestDataFragment extends BaseFragment {
 
 
                 for (int i = 0; i < 5; i++) {
-
-                    String url = mNetMedias.get(i).getCoverImg();
                     ImageView imag = new ImageView(mContext);
-                    imag.setTag(url);
-                    if (i < 2) {
-                        imag.setBackgroundResource(imageIds[i]);
-                    } else {
-                        mImageLoader.showImageByAsyncTask(imag, mNetMedias.get(i).getCoverImg());
-                    }
-
+                    imag.setBackgroundResource(imageIds[i]);
+                    imag.setTag(mNetMedias.get(i).getCoverImg());
+                    Log.e("555", mNetMedias.get(i).getCoverImg());
+                    mImageLoader.showImageByAsyncTask(imag, (String) imag.getTag());
+                    Log.e("555", (String) imag.getTag());
                     mImageViews.add(imag);
 
 
@@ -374,9 +372,10 @@ public class TestDataFragment extends BaseFragment {
 
     private void playNetVideo(int pos) {
         Intent intent = new Intent(mContext, SystemPlayerActivity.class);
-        Uri uri = Uri.parse(mNetMedias.get(pos).getUrl());
+        NetMedia netMedia = (NetMedia) adapter.getItem(pos);
+        Uri uri = Uri.parse(netMedia.getUrl());
         intent.setData(uri);
-        intent.putExtra("name", mNetMedias.get(pos).getVideoTitle());
+        intent.putExtra("name", netMedia.getVideoTitle());
         mContext.startActivity(intent);
     }
 
@@ -396,7 +395,6 @@ public class TestDataFragment extends BaseFragment {
     public void onDestroyView() {
         Log.e("000", "onDestroyView");
         isFragmentDestroyView = true;
-        handler.removeCallbacksAndMessages(null);
         super.onDestroyView();
     }
 

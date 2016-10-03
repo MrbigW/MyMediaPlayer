@@ -3,6 +3,8 @@ package com.wrk.mymeadiaplayer.loader;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.LruCache;
 import android.widget.ImageView;
@@ -93,7 +95,10 @@ public class ImageLoader {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (mImageView.getTag().equals(mUrl)) {
-                mImageView.setImageBitmap(bitmap);
+//                mImageView.setImageBitmap(bitmap);
+                Drawable drawable = new BitmapDrawable(context.getResources(),bitmap);
+                mImageView.setBackground(drawable);
+
             }
         }
     }

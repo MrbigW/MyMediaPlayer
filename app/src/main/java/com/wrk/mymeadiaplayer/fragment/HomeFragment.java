@@ -97,6 +97,7 @@ public class HomeFragment extends BaseFragment {
 
             @Override
             public void destroyItem(ViewGroup container, int position, Object object) {
+                // 使fragment不会被销毁
 //                super.destroyItem(container, position, object);
             }
         };
