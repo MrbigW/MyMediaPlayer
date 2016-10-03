@@ -42,7 +42,7 @@ public class ViewPagerIndicator extends LinearLayout {
     private int mTriangleWidth;
     private int mTriangleHeight;
 
-    private static final float RADIO_TRIANGLE_WIDTH = 1 / 6F;
+    private static final float RADIO_TRIANGLE_WIDTH = 1 / 5F;
 
     // 初始的偏移量
     private int mInitTranslationX;
@@ -90,7 +90,7 @@ public class ViewPagerIndicator extends LinearLayout {
 
     private void initPaint() {
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
-        mPaint.setColor(Color.parseColor("#ff3097fd"));
+        mPaint.setColor(Color.WHITE);
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setPathEffect(new CornerPathEffect(3));
     }

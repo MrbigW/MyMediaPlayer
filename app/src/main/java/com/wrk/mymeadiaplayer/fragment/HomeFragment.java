@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.wrk.mymeadiaplayer.R;
+import com.wrk.mymeadiaplayer.homepagefragment.TestDataFragment;
 import com.wrk.mymeadiaplayer.homepagefragment.VpSimpleFragment;
 import com.wrk.mymeadiaplayer.view.ViewPagerIndicator;
 
@@ -67,12 +68,19 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
-        mTitles = Arrays.asList("首页", "动作", "剧情", "爱情", "科幻", "冒险", "犯罪", "奇幻", "惊悚","悬疑","动画","爱情");
+        mTitles = Arrays.asList("首页", "动作", "剧情", "爱情", "科幻", "冒险", "犯罪", "奇幻", "惊悚", "悬疑", "动画", "爱情");
         mContents = new ArrayList<Fragment>();
 
         for (String title : mTitles) {
-            VpSimpleFragment vpSimpleFragment = VpSimpleFragment.newInstance(title);
-            mContents.add(vpSimpleFragment);
+
+            if (!title.equals("首页")) {
+                VpSimpleFragment vpSimpleFragment = VpSimpleFragment.newInstance(title);
+                mContents.add(vpSimpleFragment);
+            } else {
+
+                mContents.add(new TestDataFragment());
+
+            }
         }
 
         mAdapter = new FragmentPagerAdapter(getFragmentManager()) {

@@ -10,7 +10,7 @@
         android:id="@+id/id_indicator"
         android:layout_width="match_parent"
         android:layout_height="45dp"
-        android:background="@drawable/title_bar_bg_one_row_white"
+        android:background="@drawable/title_bar_bg_one_row_blue"
         android:orientation="horizontal"
         custom:visible_tab_count="4"
         >
