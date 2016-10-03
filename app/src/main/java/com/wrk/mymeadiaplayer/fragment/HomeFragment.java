@@ -102,6 +102,7 @@ public class HomeFragment extends BaseFragment {
         };
 
         mIndicator.setVisibleTabCount(5);
+
         mIndicator.setTabItemTitles(mTitles);
 
         mViewPager.setAdapter(mAdapter);

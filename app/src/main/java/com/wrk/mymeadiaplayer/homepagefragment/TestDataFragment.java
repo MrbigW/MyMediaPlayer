@@ -1,6 +1,8 @@
 package com.wrk.mymeadiaplayer.homepagefragment;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,12 +16,13 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wrk.mymeadiaplayer.R;
+import com.wrk.mymeadiaplayer.activity.SystemPlayerActivity;
 import com.wrk.mymeadiaplayer.adapter.MyDataFragAdapter;
 import com.wrk.mymeadiaplayer.bean.NetMedia;
 import com.wrk.mymeadiaplayer.fragment.BaseFragment;
@@ -172,10 +175,15 @@ public class TestDataFragment extends BaseFragment {
 
 
                 for (int i = 0; i < 5; i++) {
+
                     String url = mNetMedias.get(i).getCoverImg();
                     ImageView imag = new ImageView(mContext);
                     imag.setTag(url);
-                    mImageLoader.showImageByAsyncTask(imag, mNetMedias.get(i).getCoverImg());
+                    if (i < 2) {
+                        imag.setBackgroundResource(imageIds[i]);
+                    } else {
+                        mImageLoader.showImageByAsyncTask(imag, mNetMedias.get(i).getCoverImg());
+                    }
 
                     mImageViews.add(imag);
 
@@ -211,14 +219,21 @@ public class TestDataFragment extends BaseFragment {
                 }
                 handler.sendEmptyMessageDelayed(0, 3000);
 
-//                adapter = new MyDataFragAdapter(mContext, mNetMedias);
-
-//                lv_frg_data.setAdapter(adapter);
                 showListView(mNetMedias);
+
+                lv_frg_data.setOnItemClickListener(new MyOnItemClickListener());
             }
 
         }.execute(URLPATH);
 
+    }
+
+    class MyOnItemClickListener implements AdapterView.OnItemClickListener {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            playNetVideo(position - 2);
+        }
     }
 
 
@@ -305,7 +320,7 @@ public class TestDataFragment extends BaseFragment {
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
             final ImageView image = mImageViews.get(position % mImageViews.size());
-
+            final int pos = position;
             container.addView(image);
 
             //  对imageview进行触摸和点击监听
@@ -329,7 +344,7 @@ public class TestDataFragment extends BaseFragment {
             image.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(mContext, mNetMedias.get(((int) image.getTag()) % mImageViews.size()).getMovieName(), Toast.LENGTH_SHORT).show();
+                    playNetVideo(pos);
                 }
             });
             return image;
@@ -355,6 +370,14 @@ public class TestDataFragment extends BaseFragment {
         public boolean isViewFromObject(View view, Object object) {
             return view == object;
         }
+    }
+
+    private void playNetVideo(int pos) {
+        Intent intent = new Intent(mContext, SystemPlayerActivity.class);
+        Uri uri = Uri.parse(mNetMedias.get(pos).getUrl());
+        intent.setData(uri);
+        intent.putExtra("name", mNetMedias.get(pos).getVideoTitle());
+        mContext.startActivity(intent);
     }
 
     @Override

@@ -244,6 +244,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         else if (mUri != null) {
             // 设置播放地址
             videoview.setVideoURI(mUri);
+            tvName.setText(getIntent().getStringExtra("name"));
         } else {
             Toast.makeText(this, "没有传递数据进入播放器", Toast.LENGTH_SHORT).show();
         }
