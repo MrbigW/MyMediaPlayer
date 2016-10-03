@@ -1,12 +1,21 @@
 package com.wrk.mymeadiaplayer.fragment;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.view.Gravity;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.TextView;
+
+import com.wrk.mymeadiaplayer.R;
+import com.wrk.mymeadiaplayer.homepagefragment.VpSimpleFragment;
+import com.wrk.mymeadiaplayer.view.ViewPagerIndicator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by MrbigW on 2016/10/1.
@@ -18,12 +27,21 @@ import android.widget.TextView;
 
 public class HomeFragment extends BaseFragment {
     private Context mContext;
-    private TextView mTextView;
+    private ViewPager mViewPager;
+    private ViewPagerIndicator mIndicator;
+
+    private List<String> mTitles;
+
+    private List<Fragment> mContents;
+
+    protected FragmentPagerAdapter mAdapter;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getActivity();
+
     }
 
     /**
@@ -33,11 +51,14 @@ public class HomeFragment extends BaseFragment {
      */
     @Override
     public View initView() {
-        mTextView = new TextView(mContext);
-        mTextView.setTextSize(25);
-        mTextView.setTextColor(Color.RED);
-        mTextView.setGravity(Gravity.CENTER);
-        return mTextView;
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View view = inflater.inflate(R.layout.homefragment_layout, null);
+
+        mViewPager = (ViewPager) view.findViewById(R.id.id_viewpager);
+        mIndicator = (ViewPagerIndicator) view.findViewById(R.id.id_indicator);
+
+
+        return view;
     }
 
     /**
@@ -46,6 +67,31 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
-        mTextView.setText("首页");
+        mTitles = Arrays.asList("首页", "动作", "剧情", "爱情", "科幻", "冒险", "犯罪", "奇幻", "惊悚","悬疑","动画","爱情");
+        mContents = new ArrayList<Fragment>();
+
+        for (String title : mTitles) {
+            VpSimpleFragment vpSimpleFragment = VpSimpleFragment.newInstance(title);
+            mContents.add(vpSimpleFragment);
+        }
+
+        mAdapter = new FragmentPagerAdapter(getFragmentManager()) {
+            @Override
+            public Fragment getItem(int position) {
+                return mContents.get(position);
+            }
+
+            @Override
+            public int getCount() {
+                return mContents.size();
+            }
+        };
+
+        mIndicator.setVisibleTabCount(5);
+        mIndicator.setTabItemTitles(mTitles);
+
+        mViewPager.setAdapter(mAdapter);
+
+        mIndicator.setViewPager(mViewPager, 0);
     }
 }
