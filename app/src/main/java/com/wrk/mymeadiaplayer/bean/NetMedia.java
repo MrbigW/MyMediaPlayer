@@ -1,5 +1,6 @@
 package com.wrk.mymeadiaplayer.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  * -------------------=.=------------------------
  */
 
-public class NetMedia {
+public class NetMedia implements Serializable {
 
     /**
      * id : 62737

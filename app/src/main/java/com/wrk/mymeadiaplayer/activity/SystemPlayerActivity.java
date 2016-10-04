@@ -12,19 +12,25 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wrk.mymeadiaplayer.R;
-import com.wrk.mymeadiaplayer.util.Utils;
+import com.wrk.mymeadiaplayer.adapter.MyTopListAdapter;
 import com.wrk.mymeadiaplayer.bean.MediaItem;
+import com.wrk.mymeadiaplayer.bean.NetMedia;
+import com.wrk.mymeadiaplayer.util.Utils;
 import com.wrk.mymeadiaplayer.view.VideoView;
 
 import java.text.SimpleDateFormat;
@@ -71,6 +77,15 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private Button btnVideoNext;
     private Button btnVideoScreen;
     private MyReceiver mReceiver;
+    private Button btn_video_danmu;
+    private Button btn_video_list;
+    private Button btn_video_more;
+    private LinearLayout ll_top_top;
+
+    // top_list的popupwindow
+    private PopupWindow popListWin;
+    private ListView topList;
+    private ArrayList<NetMedia> mNetMedias;
 
     // 视频列表数据
     private ArrayList<MediaItem> mMedialist;
@@ -103,6 +118,10 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
      */
     private void findViews() {
         setContentView(R.layout.activity_systemplayer);
+        ll_top_top = (LinearLayout) findViewById(R.id.ll_top_top);
+        btn_video_more = (Button) findViewById(R.id.btn_video_more);
+        btn_video_list = (Button) findViewById(R.id.btn_video_list);
+        btn_video_danmu = (Button) findViewById(R.id.btn_video_danmu);
         tv_current = (TextView) findViewById(R.id.tv_current);
         videoview = (VideoView) findViewById(R.id.videoview);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
@@ -121,6 +140,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         btnVideoNext = (Button) findViewById(R.id.btn_video_next);
         btnVideoScreen = (Button) findViewById(R.id.btn_video_screen);
 
+        btn_video_more.setOnClickListener(this);
+        btn_video_danmu.setOnClickListener(this);
+        btn_video_list.setOnClickListener(this);
         btnVideoVoice.setOnClickListener(this);
         btnVideoSwitchPlayer.setOnClickListener(this);
         btnVideoExit.setOnClickListener(this);
@@ -148,21 +170,50 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         if (v == btnVideoVoice) {
             isMute = !isMute;
             updateVolumn(currentVolume);
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoSwitchPlayer) {
             // Handle clicks for btnVideoSwitchPlayer
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoExit) {
             // Handle clicks for btnVideoExit
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoPre) {
             setPlayPreVideo();
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoStartPause) {
             setStartAndPause();
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoNext) {
             setPlayNextVideo();
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoScreen) {
             setVideoMode();
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
+        } else if (v == btn_video_danmu) {
+
+        } else if (v == btn_video_list) {
+
+            if (popListWin == null) {
+                btn_video_list.setBackgroundResource(R.drawable.btn_danmu_preesed);
+                popListWin = new PopupWindow(SystemPlayerActivity.this);
+                popListWin.setWidth(screenWidth / 2);
+                popListWin.setHeight(screenHeight - (ll_top_top.getHeight()));
+                popListWin.setContentView(topList);
+                popListWin.setFocusable(false);
+            }
+            popListWin.showAsDropDown(ll_top_top, screenWidth / 2, 0);
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+        } else if (v == btn_video_more) {
+            Toast.makeText(this, "与列表类似", Toast.LENGTH_SHORT).show();
         }
-        mHandle.removeMessages(HIDE_MEDIACONTROLL);
-        mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
+
     }
 
     private void setStartAndPause() {
@@ -262,6 +313,13 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     }
 
     private void initData() {
+
+        /**
+         * 为toplist填充数据
+         */
+        initTopListData();
+
+
         mUtils = new Utils();
 
         // 注册电量接收广播
@@ -284,6 +342,30 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         currentVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
+    }
+
+    private void initTopListData() {
+        topList = new ListView(SystemPlayerActivity.this);
+        topList.setBackgroundResource(R.drawable.bg_player_top_control);
+        mNetMedias = (ArrayList<NetMedia>) getIntent().getSerializableExtra("netmedialist");
+        Log.e("666", mNetMedias.toString());
+        if (mNetMedias != null && mNetMedias.size() > 0) {
+            topList.setAdapter(new MyTopListAdapter(SystemPlayerActivity.this, mNetMedias));
+            topList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    NetMedia netMedia = mNetMedias.get(position);
+                    Toast.makeText(SystemPlayerActivity.this, netMedia.getMovieName(), Toast.LENGTH_SHORT).show();
+                    Uri uri = Uri.parse(netMedia.getUrl());
+                    videoview.setVideoURI(uri);
+                    if (popListWin != null && popListWin.isShowing()) {
+                        popListWin.dismiss();
+                        popListWin = null;
+                        btn_video_list.setBackgroundResource(R.drawable.btn_danmu_normal);
+                    }
+                }
+            });
+        }
     }
 
     class MySimpleOnGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -369,9 +451,15 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
      * 隐藏控制面板
      */
     private void hideMediaConroller() {
-        isshowMediaConroller = false;
-        llTop.setVisibility(View.GONE);
-        llBottom.setVisibility(View.GONE);
+            isshowMediaConroller = false;
+            llTop.setVisibility(View.GONE);
+            llBottom.setVisibility(View.GONE);
+            if (popListWin != null && popListWin.isShowing()) {
+                popListWin.dismiss();
+                popListWin = null;
+                btn_video_list.setBackgroundResource(R.drawable.btn_danmu_normal);
+            }
+
     }
 
     /**
@@ -591,6 +679,8 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                 // 播放完成
                 finish();
             }
+        } else if (mNetMedias != null && mNetMedias.size() > 0) {
+            finish();
         } else if (mUri != null) { // 只有一个播放地址
             mPos = mMedialist.size() - 1;
             finish();
