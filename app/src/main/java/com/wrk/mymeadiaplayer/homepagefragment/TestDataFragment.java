@@ -179,10 +179,8 @@ public class TestDataFragment extends BaseFragment {
                 for (int i = 0; i < 5; i++) {
                     ImageView imag = new ImageView(mContext);
                     imag.setBackgroundResource(imageIds[i]);
-                    imag.setTag(mNetMedias.get(i).getCoverImg());
-                    Log.e("555", mNetMedias.get(i).getCoverImg());
-                    mImageLoader.showImageByAsyncTask(imag, (String) imag.getTag());
-                    Log.e("555", (String) imag.getTag());
+//                    imag.setTag(mNetMedias.get(i).getCoverImg());
+//                    mImageLoader.showImageByAsyncTask(imag, (String) imag.getTag());
                     mImageViews.add(imag);
 
 
