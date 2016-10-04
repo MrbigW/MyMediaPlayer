@@ -41,6 +41,7 @@ public class MyDataFragAdapter extends BaseAdapter {
         this.notifyDataSetChanged();
     }
 
+
     @Override
     public int getCount() {
         return mNetMedias.size();
