@@ -28,8 +28,10 @@ import android.widget.Toast;
 
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.adapter.MyTopListAdapter;
+import com.wrk.mymeadiaplayer.adapter.MyTopMoreAdapter;
 import com.wrk.mymeadiaplayer.bean.MediaItem;
 import com.wrk.mymeadiaplayer.bean.NetMedia;
+import com.wrk.mymeadiaplayer.util.DensityUtil;
 import com.wrk.mymeadiaplayer.util.Utils;
 import com.wrk.mymeadiaplayer.view.VideoView;
 
@@ -85,6 +87,8 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     // top_list的popupwindow
     private PopupWindow popListWin;
     private ListView topList;
+
+    // 网络视频列表
     private ArrayList<NetMedia> mNetMedias;
 
     // 视频列表数据
@@ -109,6 +113,11 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private AudioManager mAudioManager;
     private int currentVolume; //当前
     private int maxVolume; // 最大
+
+    // 视频质量的popupWindow
+    private PopupWindow popMoreWin;
+    private ListView popMoreList;
+
 
     /**
      * Find the Views in the layout<br />
@@ -199,7 +208,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         } else if (v == btn_video_danmu) {
 
         } else if (v == btn_video_list) {
-
+            hidePopMoreWin();
             if (popListWin == null) {
                 btn_video_list.setBackgroundResource(R.drawable.btn_danmu_preesed);
                 popListWin = new PopupWindow(SystemPlayerActivity.this);
@@ -211,10 +220,37 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             popListWin.showAsDropDown(ll_top_top, screenWidth / 2, 0);
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
         } else if (v == btn_video_more) {
-            Toast.makeText(this, "与列表类似", Toast.LENGTH_SHORT).show();
+            hidePopListWin();
+            if (popMoreWin == null) {
+                btn_video_more.setBackgroundResource(R.drawable.btn_danmu_preesed);
+                popMoreWin = new PopupWindow(SystemPlayerActivity.this);
+                popMoreWin.setWidth(DensityUtil.dip2px(SystemPlayerActivity.this, 65));
+                popMoreWin.setHeight(DensityUtil.dip2px(SystemPlayerActivity.this, 75));
+                popMoreWin.setContentView(popMoreList);
+                popMoreWin.setFocusable(false);
+            }
+            popMoreWin.showAsDropDown(btn_video_more, 0,1);
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
         }
 
     }
+
+    private void hidePopListWin() {
+        if (popListWin != null && popListWin.isShowing()) {
+            popListWin.dismiss();
+            popListWin = null;
+            btn_video_list.setBackgroundResource(R.drawable.btn_danmu_normal);
+        }
+    }
+
+    private void hidePopMoreWin() {
+        if (popMoreWin != null && popMoreWin.isShowing()) {
+            popMoreWin.dismiss();
+            popMoreWin = null;
+            btn_video_more.setBackgroundResource(R.drawable.btn_danmu_normal);
+        }
+    }
+
 
     private void setStartAndPause() {
         if (videoview.isPlaying()) {
@@ -315,7 +351,12 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private void initData() {
 
         /**
-         * 为toplist填充数据
+         * 为topMore填充数据
+         */
+        initTopMoreData();
+
+        /**
+         * 为topList填充数据
          */
         initTopListData();
 
@@ -344,6 +385,46 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
     }
 
+    private MyTopMoreAdapter ad;
+    private boolean isHignUri = false;
+
+
+    private void initTopMoreData() {
+        ad = new MyTopMoreAdapter(this);
+        popMoreList = new ListView(this);
+        popMoreList.setBackgroundResource(R.drawable.bg_player_top_control);
+        popMoreList.setAdapter(ad);
+        popMoreList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position == 0 && !isHignUri) {
+                    Toast.makeText(SystemPlayerActivity.this, "目前为标清格式~", Toast.LENGTH_SHORT).show();
+                }else if(position == 0 && isHignUri) {
+                    isHignUri = false;
+                    int netMediaId = getIntent().getIntExtra("id", 0);
+
+                    for (int i = 0; i < mNetMedias.size(); i++) {
+                        if (netMediaId == mNetMedias.get(i).getId()) {
+                            videoview.setVideoURI(Uri.parse(mNetMedias.get(i).getUrl()));
+                            hidePopMoreWin();
+                        }
+                    }
+                }else if(position == 1 && !isHignUri) {
+                    isHignUri = true;
+                    int netMediaId = getIntent().getIntExtra("id", 0);
+                    for (int i = 0; i < mNetMedias.size(); i++) {
+                        if (netMediaId == mNetMedias.get(i).getId()) {
+                            videoview.setVideoURI(Uri.parse(mNetMedias.get(i).getHightUrl()));
+                            hidePopMoreWin();
+                        }
+                    }
+                }else if(position == 1 && isHignUri) {
+                    Toast.makeText(SystemPlayerActivity.this, "目前为高清格式~", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
     private void initTopListData() {
         topList = new ListView(SystemPlayerActivity.this);
         topList.setBackgroundResource(R.drawable.bg_player_top_control);
@@ -358,11 +439,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                     Toast.makeText(SystemPlayerActivity.this, netMedia.getMovieName(), Toast.LENGTH_SHORT).show();
                     Uri uri = Uri.parse(netMedia.getUrl());
                     videoview.setVideoURI(uri);
-                    if (popListWin != null && popListWin.isShowing()) {
-                        popListWin.dismiss();
-                        popListWin = null;
-                        btn_video_list.setBackgroundResource(R.drawable.btn_danmu_normal);
-                    }
+                    hidePopListWin();
                 }
             });
         }
@@ -451,15 +528,11 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
      * 隐藏控制面板
      */
     private void hideMediaConroller() {
-            isshowMediaConroller = false;
-            llTop.setVisibility(View.GONE);
-            llBottom.setVisibility(View.GONE);
-            if (popListWin != null && popListWin.isShowing()) {
-                popListWin.dismiss();
-                popListWin = null;
-                btn_video_list.setBackgroundResource(R.drawable.btn_danmu_normal);
-            }
-
+        isshowMediaConroller = false;
+        llTop.setVisibility(View.GONE);
+        llBottom.setVisibility(View.GONE);
+        hidePopListWin();
+        hidePopMoreWin();
     }
 
     /**

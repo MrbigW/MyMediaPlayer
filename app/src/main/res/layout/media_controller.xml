@@ -124,7 +124,7 @@
             <Button
                 android:id="@+id/btn_video_danmu"
                 android:layout_width="50dp"
-                android:layout_height="18dp"
+                android:layout_height="22dp"
                 android:layout_marginRight="30dp"
                 android:background="@drawable/btn_danmu_selector"
                 android:text="弹幕"/>
@@ -132,7 +132,7 @@
             <Button
                 android:id="@+id/btn_video_list"
                 android:layout_width="50dp"
-                android:layout_height="18dp"
+                android:layout_height="22dp"
                 android:layout_marginRight="30dp"
                 android:background="@drawable/btn_danmu_selector"
                 android:text="列表"/>
@@ -140,10 +140,10 @@
             <Button
                 android:id="@+id/btn_video_more"
                 android:layout_width="50dp"
-                android:layout_height="18dp"
+                android:layout_height="22dp"
                 android:layout_marginRight="30dp"
                 android:background="@drawable/btn_danmu_selector"
-                android:text="更多"/>
+                android:text="普清"/>
 
             <ImageView
                 android:id="@+id/iv_battery"

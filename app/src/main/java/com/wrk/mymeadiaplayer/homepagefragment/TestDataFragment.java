@@ -379,9 +379,10 @@ public class TestDataFragment extends BaseFragment {
         }
         Bundle bundle = new Bundle();
         bundle.putSerializable("netmedialist", mMedias);
+        intent.putExtras(bundle);
         intent.setData(uri);
         intent.putExtra("name", netMedia.getVideoTitle());
-        intent.putExtras(bundle);
+        intent.putExtra("id", netMedia.getId());
         mContext.startActivity(intent);
     }
 
