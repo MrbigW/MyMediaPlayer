@@ -35,9 +35,25 @@ import com.wrk.mymeadiaplayer.util.DensityUtil;
 import com.wrk.mymeadiaplayer.util.Utils;
 import com.wrk.mymeadiaplayer.view.VideoView;
 
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+
+import master.flame.danmaku.controller.IDanmakuView;
+import master.flame.danmaku.danmaku.loader.ILoader;
+import master.flame.danmaku.danmaku.loader.IllegalDataException;
+import master.flame.danmaku.danmaku.loader.android.DanmakuLoaderFactory;
+import master.flame.danmaku.danmaku.model.BaseDanmaku;
+import master.flame.danmaku.danmaku.model.DanmakuTimer;
+import master.flame.danmaku.danmaku.model.IDanmakus;
+import master.flame.danmaku.danmaku.model.IDisplayer;
+import master.flame.danmaku.danmaku.model.android.DanmakuContext;
+import master.flame.danmaku.danmaku.model.android.Danmakus;
+import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
+import master.flame.danmaku.danmaku.parser.IDataSource;
+import master.flame.danmaku.danmaku.parser.android.BiliDanmukuParser;
 
 /**
  * Created by MrbigW on 2016/9/28.
@@ -109,6 +125,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private int screenWidth;
     private int screenHeight;
 
+    // 默认静音
+    private boolean isMute = false;
+
     // 调节声音
     private AudioManager mAudioManager;
     private int currentVolume; //当前
@@ -118,13 +137,18 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private PopupWindow popMoreWin;
     private ListView popMoreList;
 
+    // 弹幕view
+    private IDanmakuView mDanmakuView;
+    // 弹幕解析器
+    private BaseDanmakuParser mParser;
+    // 弹幕上下文
+    private DanmakuContext mContext;
 
-    /**
-     * Find the Views in the layout<br />
-     * <br />
-     * Auto-created on 2016-09-29 23:55:03 by Android Layout Finder
-     * (http://www.buzzingandroid.com/tools/android-layout-finder)
-     */
+    private boolean isshowMediaConroller = false;
+
+    private boolean isDanmuShowing = false;
+
+
     private void findViews() {
         setContentView(R.layout.activity_systemplayer);
         ll_top_top = (LinearLayout) findViewById(R.id.ll_top_top);
@@ -165,15 +189,8 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         seekBar_voice.setProgress(currentVolume);
     }
 
-    // 默认静音
-    private boolean isMute = false;
 
-    /**
-     * Handle button click events<br />
-     * <br />
-     * Auto-created on 2016-09-29 23:55:03 by Android Layout Finder
-     * (http://www.buzzingandroid.com/tools/android-layout-finder)
-     */
+
     @Override
     public void onClick(View v) {
         if (v == btnVideoVoice) {
@@ -206,7 +223,18 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
             mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btn_video_danmu) {
+            if (!isDanmuShowing) {
+                isDanmuShowing = true;
+                mDanmakuView.setVisibility(View.VISIBLE);
+                btn_video_danmu.setBackgroundResource(R.drawable.btn_danmu_preesed);
 
+            } else {
+                isDanmuShowing = false;
+                mDanmakuView.setVisibility(View.GONE);
+                btn_video_danmu.setBackgroundResource(R.drawable.btn_danmu_normal);
+            }
+            mHandle.removeMessages(HIDE_MEDIACONTROLL);
+            mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btn_video_list) {
             hidePopMoreWin();
             if (popListWin == null) {
@@ -229,12 +257,115 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                 popMoreWin.setContentView(popMoreList);
                 popMoreWin.setFocusable(false);
             }
-            popMoreWin.showAsDropDown(btn_video_more, 0,1);
+            popMoreWin.showAsDropDown(btn_video_more, 0, 1);
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
         }
 
     }
 
+
+    private BaseDanmakuParser createParser(InputStream stream) {
+        if (stream == null) {
+            return new BaseDanmakuParser() {
+                @Override
+                protected IDanmakus parse() {
+                    return new Danmakus();
+                }
+            };
+        }
+
+        /**
+         * DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_BILI) //xml解析
+         * DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_ACFUN) //json文件格式解析
+         */
+        ILoader loader = DanmakuLoaderFactory.create(DanmakuLoaderFactory.TAG_BILI);
+
+        try {
+            loader.load(stream);
+        } catch (IllegalDataException e) {
+            e.printStackTrace();
+        }
+
+        BaseDanmakuParser parser = new BiliDanmukuParser();
+        IDataSource<?> dataSource = loader.getDataSource();
+        parser.load(dataSource);
+        return parser;
+    }
+    private void initDanmu() {
+        // 设置最大显示行数
+        HashMap<Integer, Integer> maxLinesPair = new HashMap<Integer, Integer>();
+        maxLinesPair.put(BaseDanmaku.TYPE_SCROLL_RL, 5); // 滚动弹幕最大显示5行
+        // 设置是否禁止重叠
+        HashMap<Integer, Boolean> overlappingEnablePair = new HashMap<Integer, Boolean>();
+        overlappingEnablePair.put(BaseDanmaku.TYPE_SCROLL_RL, true);
+        overlappingEnablePair.put(BaseDanmaku.TYPE_FIX_TOP, true);
+
+        mDanmakuView = (IDanmakuView) findViewById(R.id.sv_danmaku);
+        mContext = DanmakuContext.create();
+        mContext.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3)
+                .setDuplicateMergingEnabled(false)//是否启用合并重复弹幕
+                .setScrollSpeedFactor(1.2f)   //设置弹幕滚动速度系数,只对滚动弹幕有效
+                .setScaleTextSize(1.2f)    // 设置弹幕文字大小
+//                .setCacheStuffer(new SpannedCacheStuffer(), mCacheStufferAdapter) // 图文混排使用SpannedCacheStuffer
+//               .setCacheStuffer(new BackgroundCacheStuffer())  // 绘制背景使用BackgroundCacheStuffer
+                .setMaximumLines(maxLinesPair) //设置最大显示行数
+                .preventOverlapping(overlappingEnablePair);  //设置防弹幕重叠，null为允许重叠
+        if (mDanmakuView != null) {
+            mParser = createParser(this.getResources().openRawResource(R.raw.comments)); //创建解析器对象，从raw资源目录下解析comments.xml文本
+            mDanmakuView.setCallback(new master.flame.danmaku.controller.DrawHandler.Callback() {
+                @Override
+                public void updateTimer(DanmakuTimer timer) {
+                }
+
+                @Override
+                public void drawingFinished() {
+
+                }
+
+                @Override
+                public void danmakuShown(BaseDanmaku danmaku) {
+//                    showMediaConroller();
+//                    mHandle.removeMessages(HIDE_MEDIACONTROLL);
+//                    mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
+                    if(danmaku == null) {
+                        showMediaConroller();
+                    }
+                }
+
+                @Override
+                public void prepared() {
+                    mDanmakuView.start();
+                }
+            });
+
+            mDanmakuView.setOnDanmakuClickListener(new IDanmakuView.OnDanmakuClickListener() {
+
+                @Override
+                public void onDanmakuClick(BaseDanmaku latest) {
+                    Toast.makeText(SystemPlayerActivity.this,latest.text, Toast.LENGTH_SHORT).show();
+                    mHandle.removeMessages(HIDE_MEDIACONTROLL);
+                    mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
+                    showMediaConroller();
+                }
+                @Override
+                public void onDanmakuClick(IDanmakus danmakus) {
+                    mHandle.removeMessages(HIDE_MEDIACONTROLL);
+                    mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
+                    showMediaConroller();
+                }
+            });
+            mDanmakuView.prepare(mParser, mContext);
+            mDanmakuView.enableDanmakuDrawingCache(true);
+        }
+
+        mDanmakuView.setVisibility(View.GONE);
+    }
+
+
+
+    /**
+     * 隐藏PopList
+     */
     private void hidePopListWin() {
         if (popListWin != null && popListWin.isShowing()) {
             popListWin.dismiss();
@@ -243,6 +374,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         }
     }
 
+    /**
+     * PopMore
+     */
     private void hidePopMoreWin() {
         if (popMoreWin != null && popMoreWin.isShowing()) {
             popMoreWin.dismiss();
@@ -251,13 +385,14 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         }
     }
 
-
     private void setStartAndPause() {
         if (videoview.isPlaying()) {
             videoview.pause(); // 暂停
+            mDanmakuView.pause();
             btnVideoStartPause.setBackgroundResource(R.drawable.btn_video_start_selector);
         } else {
             videoview.start(); // 暂停
+            mDanmakuView.resume();
             btnVideoStartPause.setBackgroundResource(R.drawable.btn_video_pause_selector);
         }
     }
@@ -351,6 +486,11 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private void initData() {
 
         /**
+         * 初始化弹幕信息
+         */
+        initDanmu();
+
+        /**
          * 为topMore填充数据
          */
         initTopMoreData();
@@ -397,9 +537,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         popMoreList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(position == 0 && !isHignUri) {
+                if (position == 0 && !isHignUri) {
                     Toast.makeText(SystemPlayerActivity.this, "目前为标清格式~", Toast.LENGTH_SHORT).show();
-                }else if(position == 0 && isHignUri) {
+                } else if (position == 0 && isHignUri) {
                     isHignUri = false;
                     int netMediaId = getIntent().getIntExtra("id", 0);
 
@@ -409,7 +549,8 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                             hidePopMoreWin();
                         }
                     }
-                }else if(position == 1 && !isHignUri) {
+                    btn_video_more.setText("标清");
+                } else if (position == 1 && !isHignUri) {
                     isHignUri = true;
                     int netMediaId = getIntent().getIntExtra("id", 0);
                     for (int i = 0; i < mNetMedias.size(); i++) {
@@ -418,7 +559,8 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                             hidePopMoreWin();
                         }
                     }
-                }else if(position == 1 && isHignUri) {
+                    btn_video_more.setText("高清");
+                } else if (position == 1 && isHignUri) {
                     Toast.makeText(SystemPlayerActivity.this, "目前为高清格式~", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -522,7 +664,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         }
     }
 
-    private boolean isshowMediaConroller = false;
+
 
     /**
      * 隐藏控制面板
@@ -811,11 +953,21 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     @Override
     protected void onResume() {
         super.onResume();
+
+        // 恢复弹幕
+        if (mDanmakuView != null && mDanmakuView.isPrepared() && mDanmakuView.isPaused()) {
+            mDanmakuView.resume();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        // 暂停弹幕
+        if (mDanmakuView != null && mDanmakuView.isPrepared()) {
+            mDanmakuView.pause();
+        }
     }
 
     @Override
@@ -826,6 +978,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         // 移除所有的消息和回调
         mHandle.removeCallbacksAndMessages(null);
 
@@ -835,8 +988,24 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             mReceiver = null;
 
         }
+        // 销毁并释放弹幕view资源
+        if (mDanmakuView != null) {
+            // dont forget release!
+            mDanmakuView.release();
+            mDanmakuView = null;
+        }
 
-        super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // 销毁并释放弹幕view资源
+        if (mDanmakuView != null) {
+            // dont forget release!
+            mDanmakuView.release();
+            mDanmakuView = null;
+        }
     }
 
     @Override

@@ -143,7 +143,7 @@
                 android:layout_height="22dp"
                 android:layout_marginRight="30dp"
                 android:background="@drawable/btn_danmu_selector"
-                android:text="普清"/>
+                android:text="标清"/>
 
             <ImageView
                 android:id="@+id/iv_battery"
