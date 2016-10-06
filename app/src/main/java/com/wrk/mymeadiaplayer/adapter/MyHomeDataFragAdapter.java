@@ -22,13 +22,13 @@ import java.util.List;
  * -------------------=.=------------------------
  */
 
-public class MyDataFragAdapter extends BaseAdapter {
+public class MyHomeDataFragAdapter extends BaseAdapter {
 
     private Context mContext;
     private List<NetMedia> mNetMedias;
     private ImageLoader mImageLoader;
 
-    public MyDataFragAdapter(Context context, List<NetMedia> medias) {
+    public MyHomeDataFragAdapter(Context context, List<NetMedia> medias) {
         mNetMedias = new ArrayList<>();
         this.mContext = context;
         this.mNetMedias = medias;

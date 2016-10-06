@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.bean.NetMedia;
-import com.wrk.mymeadiaplayer.homepagefragment.TestDataFragment;
+import com.wrk.mymeadiaplayer.homepagefragment.HomeDataFragment;
 import com.wrk.mymeadiaplayer.util.SearchALG;
 import com.wrk.mymeadiaplayer.view.MySearchView;
 
@@ -170,7 +170,7 @@ public class SearchActivity extends Activity {
                 mSearchView.setMaxHistoryRecordCount(6);
 
             }
-        }.execute(TestDataFragment.URLPATH);
+        }.execute(HomeDataFragment.URLPATH);
 
 
     }

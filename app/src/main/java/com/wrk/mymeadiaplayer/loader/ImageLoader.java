@@ -4,8 +4,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
+
+import com.wrk.mymeadiaplayer.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +27,7 @@ public class ImageLoader {
         this.context = context;
         //  获取最大可用内存
         int maxMemory = (int) Runtime.getRuntime().maxMemory();
-        int cacheSize = maxMemory / 4;
+        int cacheSize = maxMemory / 3;
 
         mCaches = new LruCache<String, Bitmap>(cacheSize) {
             @Override
@@ -48,15 +51,17 @@ public class ImageLoader {
     }
 
 
-
-
     //  得到图片
     public void showImageByAsyncTask(ImageView imageView, String url) {
         Bitmap bitmap = getBitmapFromCache(url);
         if (bitmap == null) {
             new NewsAsyncTask(imageView, url).execute(url);
         } else {
-            imageView.setImageBitmap(bitmap);
+            if (imageView.getTag().equals(url)) {
+                imageView.setImageBitmap(bitmap);
+            } else {
+                imageView.setImageResource(R.drawable.video_default);
+            }
         }
 
     }
@@ -93,10 +98,10 @@ public class ImageLoader {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (mImageView.getTag().equals(mUrl)) {
+                Log.e("888", "mImageView.getTag():" + mImageView.getTag());
                 mImageView.setImageBitmap(bitmap);
-//                Drawable drawable = new BitmapDrawable(context.getResources(),bitmap);
-//                mImageView.setBackground(drawable);
-
+            } else {
+                mImageView.setImageResource(R.drawable.video_default);
             }
         }
     }

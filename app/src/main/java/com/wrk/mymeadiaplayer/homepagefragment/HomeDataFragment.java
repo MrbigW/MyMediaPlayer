@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.activity.SystemPlayerActivity;
-import com.wrk.mymeadiaplayer.adapter.MyDataFragAdapter;
+import com.wrk.mymeadiaplayer.adapter.MyHomeDataFragAdapter;
 import com.wrk.mymeadiaplayer.bean.NetMedia;
 import com.wrk.mymeadiaplayer.fragment.BaseFragment;
 import com.wrk.mymeadiaplayer.loader.ImageLoader;
@@ -49,7 +49,7 @@ import java.util.List;
  * -------------------=.=------------------------
  */
 
-public class TestDataFragment extends BaseFragment {
+public class HomeDataFragment extends BaseFragment {
 
     //  每页最多显示的数目
     private final static int SHOW_ITEM_MAX = 8;
@@ -114,7 +114,7 @@ public class TestDataFragment extends BaseFragment {
     private ArrayList<ImageView> mImageViews;
     private ImageLoader mImageLoader;
 
-    private MyDataFragAdapter adapter;
+    private MyHomeDataFragAdapter adapter;
 
     private List<NetMedia> mNetMedias;
 
@@ -129,7 +129,7 @@ public class TestDataFragment extends BaseFragment {
     public View initView() {
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.testdatafragment_layout, null);
+        View view = inflater.inflate(R.layout.homendatafragment_layout, null);
 
         vp_frg_image = (ViewPager) view.findViewById(R.id.vp_frg_image);
         tv_main_title = (TextView) view.findViewById(R.id.tv_main_title);
@@ -438,7 +438,7 @@ public class TestDataFragment extends BaseFragment {
                     }.execute(URLPATH);
                 }
             });
-            adapter = new MyDataFragAdapter(mContext, list);
+            adapter = new MyHomeDataFragAdapter(mContext, list);
             lv_frg_data.setAdapter(adapter);
         } else {
             adapter.onDataChange(list);
