@@ -33,10 +33,10 @@
             android:id="@+id/tv_data_item_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="3dp"
+            android:layout_marginLeft="5dp"
             android:maxLines="3"
             android:text="Content"
-            android:textSize="10sp"/>
+            android:textSize="13sp"/>
 
     </LinearLayout>
 

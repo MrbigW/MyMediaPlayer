@@ -11,7 +11,6 @@ import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -55,7 +54,7 @@ public class TestDataFragment extends BaseFragment {
     //  每页最多显示的数目
     private final static int SHOW_ITEM_MAX = 8;
 
-    private static final String URLPATH = "http://api.m.mtime.cn/PageSubArea/TrailerList.api";
+    public static final String URLPATH = "http://api.m.mtime.cn/PageSubArea/TrailerList.api";
 
 
     public static final int MAX = Integer.MAX_VALUE;
@@ -123,14 +122,12 @@ public class TestDataFragment extends BaseFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getActivity();
-        Log.e("000", "onCreate");
 
     }
 
     @Override
     public View initView() {
 
-        Log.e("444", pos + "");
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.testdatafragment_layout, null);
 
@@ -173,8 +170,6 @@ public class TestDataFragment extends BaseFragment {
             protected void onPostExecute(List<NetMedia> medias) {
                 super.onPostExecute(medias);
                 mNetMedias = medias;
-                Log.e("222", medias.toString());
-
 
                 for (int i = 0; i < 5; i++) {
                     ImageView imag = new ImageView(mContext);
@@ -388,19 +383,16 @@ public class TestDataFragment extends BaseFragment {
 
     @Override
     public void onPause() {
-        Log.e("000", "onPause");
         super.onPause();
     }
 
     @Override
     public void onStop() {
-        Log.e("000", "onStop");
         super.onStop();
     }
 
     @Override
     public void onDestroyView() {
-        Log.e("000", "onDestroyView");
         isFragmentDestroyView = true;
         super.onDestroyView();
     }
@@ -433,7 +425,6 @@ public class TestDataFragment extends BaseFragment {
 
                         @Override
                         protected List<NetMedia> doInBackground(String... params) {
-                            tmp = 0;
                             SystemClock.sleep(1000);
                             return getPortJsonData(params[0]);
                         }
@@ -503,7 +494,6 @@ public class TestDataFragment extends BaseFragment {
     private void getNewsList(List<NetMedia> newsList, JSONArray jsonArray, JSONObject jsonObject, int count) {
         try {
             jsonObject = jsonArray.getJSONObject(count);
-            Log.e("222", jsonObject.toString());
             NetMedia netMedia = new NetMedia();
             netMedia.setCoverImg(jsonObject.getString("coverImg"));
             netMedia.setHightUrl(jsonObject.getString("hightUrl"));
@@ -514,8 +504,7 @@ public class TestDataFragment extends BaseFragment {
             netMedia.setUrl(jsonObject.getString("url"));
             netMedia.setVideoLength(jsonObject.getInt("videoLength"));
             netMedia.setVideoTitle(jsonObject.getString("videoTitle"));
-//                netMedia.setType((List<String>) jsonObject.get("type"));
-            Log.e("222", netMedia.toString());
+
             newsList.add(netMedia);
         } catch (JSONException e) {
             e.printStackTrace();

@@ -99,9 +99,9 @@
         android:id="@+id/ll_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true">
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/ll_top_top"
@@ -144,6 +144,7 @@
                 android:layout_marginRight="30dp"
                 android:background="@drawable/btn_danmu_selector"
                 android:text="标清"/>
+
 
             <ImageView
                 android:id="@+id/iv_battery"

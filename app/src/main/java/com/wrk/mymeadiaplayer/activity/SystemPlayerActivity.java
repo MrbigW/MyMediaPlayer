@@ -190,7 +190,6 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     }
 
 
-
     @Override
     public void onClick(View v) {
         if (v == btnVideoVoice) {
@@ -237,30 +236,38 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btn_video_list) {
             hidePopMoreWin();
-            if (popListWin == null) {
-                btn_video_list.setBackgroundResource(R.drawable.btn_danmu_preesed);
-                popListWin = new PopupWindow(SystemPlayerActivity.this);
-                popListWin.setWidth(screenWidth / 2);
-                popListWin.setHeight(screenHeight - (ll_top_top.getHeight()));
-                popListWin.setContentView(topList);
-                popListWin.setFocusable(false);
-            }
+            initPopListWin();
             popListWin.showAsDropDown(ll_top_top, screenWidth / 2, 0);
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
         } else if (v == btn_video_more) {
             hidePopListWin();
-            if (popMoreWin == null) {
-                btn_video_more.setBackgroundResource(R.drawable.btn_danmu_preesed);
-                popMoreWin = new PopupWindow(SystemPlayerActivity.this);
-                popMoreWin.setWidth(DensityUtil.dip2px(SystemPlayerActivity.this, 65));
-                popMoreWin.setHeight(DensityUtil.dip2px(SystemPlayerActivity.this, 75));
-                popMoreWin.setContentView(popMoreList);
-                popMoreWin.setFocusable(false);
-            }
+            initPopMoreWin();
             popMoreWin.showAsDropDown(btn_video_more, 0, 1);
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
         }
 
+    }
+
+    private void initPopListWin() {
+        if (popListWin == null) {
+            btn_video_list.setBackgroundResource(R.drawable.btn_danmu_preesed);
+            popListWin = new PopupWindow(SystemPlayerActivity.this);
+            popListWin.setWidth(screenWidth / 2);
+            popListWin.setHeight(screenHeight - (ll_top_top.getHeight()));
+            popListWin.setContentView(topList);
+            popListWin.setFocusable(false);
+        }
+    }
+
+    private void initPopMoreWin() {
+        if (popMoreWin == null) {
+            btn_video_more.setBackgroundResource(R.drawable.btn_danmu_preesed);
+            popMoreWin = new PopupWindow(SystemPlayerActivity.this);
+            popMoreWin.setWidth(DensityUtil.dip2px(SystemPlayerActivity.this, 65));
+            popMoreWin.setHeight(DensityUtil.dip2px(SystemPlayerActivity.this, 75));
+            popMoreWin.setContentView(popMoreList);
+            popMoreWin.setFocusable(false);
+        }
     }
 
 
@@ -291,6 +298,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         parser.load(dataSource);
         return parser;
     }
+
     private void initDanmu() {
         // 设置最大显示行数
         HashMap<Integer, Integer> maxLinesPair = new HashMap<Integer, Integer>();
@@ -327,7 +335,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 //                    showMediaConroller();
 //                    mHandle.removeMessages(HIDE_MEDIACONTROLL);
 //                    mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
-                    if(danmaku == null) {
+                    if (danmaku == null) {
                         showMediaConroller();
                     }
                 }
@@ -342,11 +350,12 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
                 @Override
                 public void onDanmakuClick(BaseDanmaku latest) {
-                    Toast.makeText(SystemPlayerActivity.this,latest.text, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SystemPlayerActivity.this, latest.text, Toast.LENGTH_SHORT).show();
                     mHandle.removeMessages(HIDE_MEDIACONTROLL);
                     mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
                     showMediaConroller();
                 }
+
                 @Override
                 public void onDanmakuClick(IDanmakus danmakus) {
                     mHandle.removeMessages(HIDE_MEDIACONTROLL);
@@ -360,7 +369,6 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
         mDanmakuView.setVisibility(View.GONE);
     }
-
 
 
     /**
@@ -663,7 +671,6 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                 break;
         }
     }
-
 
 
     /**

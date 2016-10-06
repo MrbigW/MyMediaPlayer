@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true" android:drawable="@drawable/abc_ic_search"></item>
+    <item android:state_pressed="false" android:drawable="@drawable/abc_ic_search_api_holo_light"></item>
+
+
+</selector>
