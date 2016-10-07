@@ -348,19 +348,28 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
             mDanmakuView.setOnDanmakuClickListener(new IDanmakuView.OnDanmakuClickListener() {
 
+
                 @Override
-                public void onDanmakuClick(BaseDanmaku latest) {
-                    Toast.makeText(SystemPlayerActivity.this, latest.text, Toast.LENGTH_SHORT).show();
-                    mHandle.removeMessages(HIDE_MEDIACONTROLL);
-                    mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
-                    showMediaConroller();
+                public boolean onDanmakuClick(IDanmakus danmakus) {
+                   BaseDanmaku lastest = danmakus.last();
+                    if(null != lastest) {
+                        Toast.makeText(SystemPlayerActivity.this,lastest.text, Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    return false;
                 }
 
                 @Override
-                public void onDanmakuClick(IDanmakus danmakus) {
+                public boolean onViewClick(IDanmakuView view) {
                     mHandle.removeMessages(HIDE_MEDIACONTROLL);
                     mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
-                    showMediaConroller();
+                    if(isshowMediaConroller) {
+                        hideMediaConroller();
+                    }else {
+                        showMediaConroller();
+                    }
+
+                    return false;
                 }
             });
             mDanmakuView.prepare(mParser, mContext);
