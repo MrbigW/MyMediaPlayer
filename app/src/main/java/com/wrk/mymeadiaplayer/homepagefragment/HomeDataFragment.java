@@ -335,7 +335,7 @@ public class HomeDataFragment extends BaseFragment {
             image.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    playNetVideo(pos);
+                    playNetVideo(pos % mImageViews.size());
                 }
             });
             return image;
