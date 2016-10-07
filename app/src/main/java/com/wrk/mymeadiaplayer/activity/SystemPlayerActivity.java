@@ -184,9 +184,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         btnVideoNext.setOnClickListener(this);
         btnVideoScreen.setOnClickListener(this);
 
-        // 最大音量
-        seekBar_voice.setMax(maxVolume);
-        seekBar_voice.setProgress(currentVolume);
+        // 得到当前相关音量信息
+        mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
     }
 
 
@@ -535,10 +535,14 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         screenWidth = outMetrics.widthPixels;
         screenHeight = outMetrics.heightPixels;
 
-        // 得到当前相关音量信息
-        mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        // 初始化音量
         currentVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+        // 最大音量
+        seekBar_voice.setMax(maxVolume);
+        seekBar_voice.setProgress(currentVolume);
+
 
     }
 
