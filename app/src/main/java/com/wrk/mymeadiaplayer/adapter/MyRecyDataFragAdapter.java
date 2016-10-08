@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -105,10 +106,10 @@ public class MyRecyDataFragAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         if (position == 0) {
             return GROUP_ITEM;
         }
-
-        String currentType = mNetMedias.get(position).getType().get(0);
+        Log.e("000", getDate(mNetMedias.get(position).getCoverImg()));
+        String currentType = getDate(mNetMedias.get(position).getCoverImg());
         int prevIndex = position - 1;
-        boolean isDifferent = !mNetMedias.get(prevIndex).getType().get(0).equals(currentType);
+        boolean isDifferent = !getDate(mNetMedias.get(prevIndex).getCoverImg()).equals(currentType);
         return isDifferent ? GROUP_ITEM : NORMAL_ITEM;
     }
 
@@ -125,8 +126,7 @@ public class MyRecyDataFragAdapter extends RecyclerView.Adapter<RecyclerView.Vie
      */
     private void bindGroupItem(NetMedia media, GroupItemHolder holder) {
         bindNormalItem(media, holder);
-
-        holder.movieType.setText(media.getType().get(0));
+        holder.movieType.setText(getDate(media.getCoverImg()));
     }
 
     /**
@@ -135,7 +135,7 @@ public class MyRecyDataFragAdapter extends RecyclerView.Adapter<RecyclerView.Vie
      * @param media
      * @param holder
      */
-    private void bindNormalItem( NetMedia media,  NormalItemHolder holder) {
+    private void bindNormalItem(NetMedia media, NormalItemHolder holder) {
         Picasso.with(mContext).load(media.getCoverImg()).into(holder.iv_actionIcon);
         holder.tv_actionTitle.setText(media.getVideoTitle());
     }
@@ -185,6 +185,16 @@ public class MyRecyDataFragAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             movieType = (TextView) itemView.findViewById(R.id.base_swipe_group_item_time);
         }
     }
+
+    public String getDate(String coverImagePath) {
+
+        String[] strs = coverImagePath.split("/");
+
+        String result = strs[4] + "/" + strs[5] + "/" + strs[6];
+
+        return result;
+    }
+
 
 }
 
