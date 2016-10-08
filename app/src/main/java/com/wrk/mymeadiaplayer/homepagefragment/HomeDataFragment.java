@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.activity.SystemPlayerActivity;
 import com.wrk.mymeadiaplayer.adapter.MyHomeDataFragAdapter;
@@ -173,9 +174,12 @@ public class HomeDataFragment extends BaseFragment {
 
                 for (int i = 0; i < 5; i++) {
                     ImageView imag = new ImageView(mContext);
-                    imag.setBackgroundResource(imageIds[i]);
+//                    imag.setBackgroundResource(imageIds[i]);
 //                    imag.setTag(mNetMedias.get(i).getCoverImg());
 //                    mImageLoader.showImageByAsyncTask(imag, (String) imag.getTag());
+                    Picasso.with(getActivity()).load(mNetMedias.get(i).getCoverImg())
+                            .into(imag);
+
                     mImageViews.add(imag);
 
 
@@ -425,6 +429,7 @@ public class HomeDataFragment extends BaseFragment {
 
                         @Override
                         protected List<NetMedia> doInBackground(String... params) {
+                            tmp = 0; //这行代码不能少
                             SystemClock.sleep(1000);
                             return getPortJsonData(params[0]);
                         }

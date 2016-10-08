@@ -332,9 +332,6 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
                 @Override
                 public void danmakuShown(BaseDanmaku danmaku) {
-//                    showMediaConroller();
-//                    mHandle.removeMessages(HIDE_MEDIACONTROLL);
-//                    mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
                     if (danmaku == null) {
                         showMediaConroller();
                     }
@@ -351,9 +348,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
                 @Override
                 public boolean onDanmakuClick(IDanmakus danmakus) {
-                   BaseDanmaku lastest = danmakus.last();
-                    if(null != lastest) {
-                        Toast.makeText(SystemPlayerActivity.this,lastest.text, Toast.LENGTH_SHORT).show();
+                    BaseDanmaku lastest = danmakus.last();
+                    if (null != lastest) {
+                        Toast.makeText(SystemPlayerActivity.this, lastest.text, Toast.LENGTH_SHORT).show();
                         return true;
                     }
                     return false;
@@ -363,9 +360,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                 public boolean onViewClick(IDanmakuView view) {
                     mHandle.removeMessages(HIDE_MEDIACONTROLL);
                     mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
-                    if(isshowMediaConroller) {
+                    if (isshowMediaConroller) {
                         hideMediaConroller();
-                    }else {
+                    } else {
                         showMediaConroller();
                     }
 
@@ -588,20 +585,23 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         });
     }
 
+    private MyTopListAdapter topListAdapter;
+
     private void initTopListData() {
         topList = new ListView(SystemPlayerActivity.this);
         topList.setBackgroundResource(R.drawable.bg_player_top_control);
         mNetMedias = (ArrayList<NetMedia>) getIntent().getSerializableExtra("netmedialist");
         Log.e("666", mNetMedias.toString());
         if (mNetMedias != null && mNetMedias.size() > 0) {
-            topList.setAdapter(new MyTopListAdapter(SystemPlayerActivity.this, mNetMedias));
+            topListAdapter = new MyTopListAdapter(SystemPlayerActivity.this, mNetMedias);
+            topList.setAdapter(topListAdapter);
             topList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     NetMedia netMedia = mNetMedias.get(position);
-                    Toast.makeText(SystemPlayerActivity.this, netMedia.getMovieName(), Toast.LENGTH_SHORT).show();
                     Uri uri = Uri.parse(netMedia.getUrl());
                     videoview.setVideoURI(uri);
+                    tvName.setText(netMedia.getVideoTitle());
                     hidePopListWin();
                 }
             });

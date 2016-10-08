@@ -1,28 +1,22 @@
 package com.wrk.mymeadiaplayer.adapter;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.activity.MainActivity;
 import com.wrk.mymeadiaplayer.activity.SystemPlayerActivity;
 import com.wrk.mymeadiaplayer.bean.NetMedia;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -141,33 +135,8 @@ public class MyRecyDataFragAdapter extends RecyclerView.Adapter<RecyclerView.Vie
      * @param media
      * @param holder
      */
-    private void bindNormalItem(final NetMedia media, final NormalItemHolder holder) {
-        holder.iv_actionIcon.setTag(media.getUrl());
-        Log.e("999", (String) holder.iv_actionIcon.getTag());
-        AsyncTask asyncTask = new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] params) {
-                try {
-                    URL url = new URL(media.getCoverImg());
-                    Bitmap bitmap = BitmapFactory.decodeStream(url.openStream());
-                    return bitmap;
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Object o) {
-                super.onPostExecute(o);
-                if(media.getUrl().equals(holder.iv_actionIcon.getTag())) {
-                    holder.iv_actionIcon.setImageBitmap((Bitmap) o);
-                }
-            }
-        }.execute();
-
+    private void bindNormalItem( NetMedia media,  NormalItemHolder holder) {
+        Picasso.with(mContext).load(media.getCoverImg()).into(holder.iv_actionIcon);
         holder.tv_actionTitle.setText(media.getVideoTitle());
     }
 
