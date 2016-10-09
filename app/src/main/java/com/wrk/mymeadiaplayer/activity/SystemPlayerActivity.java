@@ -68,15 +68,26 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private final static int PROGRESS = 0x001;
     // 常量-隐藏控制面板
     private static final int HIDE_MEDIACONTROLL = 0X002;
+    // 常量-显示网速
+    private static final int SHOW_NET_SPEED = 0x003;
 
     // 默认
     private static final int SCREEN_DEFULT = 1;
     // 全屏
     private static final int SCREEN_FULL = 2;
 
+
     private VideoView videoview;
     private Uri mUri;
     private Utils mUtils;
+
+    /**
+     * 加载与缓冲提示
+     */
+    private LinearLayout ll_loading;
+    private LinearLayout ll_buffer;
+    private TextView tv_buffer;
+    private TextView tv_loading;
 
     private LinearLayout llTop;
     private TextView tvName;
@@ -147,10 +158,15 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
     private boolean isshowMediaConroller = false;
 
     private boolean isDanmuShowing = false;
+    private boolean isNetUri;
 
 
     private void findViews() {
         setContentView(R.layout.activity_systemplayer);
+        tv_loading = (TextView) findViewById(R.id.tv_loading);
+        tv_buffer = (TextView) findViewById(R.id.tv_buffer);
+        ll_buffer = (LinearLayout) findViewById(R.id.ll_buffer);
+        ll_loading = (LinearLayout) findViewById(R.id.ll_loading);
         ll_top_top = (LinearLayout) findViewById(R.id.ll_top_top);
         btn_video_more = (Button) findViewById(R.id.btn_video_more);
         btn_video_list = (Button) findViewById(R.id.btn_video_list);
@@ -186,6 +202,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
 
         // 得到当前相关音量信息
         mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        // 发消息更新网速
+        mHandle.sendEmptyMessage(SHOW_NET_SPEED);
 
     }
 
@@ -411,12 +430,23 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         }
     }
 
+    // 上一次播放位置
+    private int preCurrentPosition;
 
     private Handler mHandle = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
+                case SHOW_NET_SPEED:
+                    // 得到网速
+                    String netSpeed = mUtils.showNetSpeed(SystemPlayerActivity.this);
+                    tv_buffer.setText(netSpeed);
+
+                    // 每隔一秒循环发送消息
+                    removeMessages(SHOW_NET_SPEED);
+                    mHandle.sendEmptyMessageDelayed(SHOW_NET_SPEED, 1000);
+                    break;
                 case PROGRESS:  // 设置进度
                     // 得到当前进度
                     int currentPosition = videoview.getCurrentPosition();
@@ -428,6 +458,32 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                     // 得到系统的时间
                     tvTime.setText(getSystemTime());
 
+                    // 设置视频缓冲效果
+                    if (isNetUri) {
+                        int bufferPerentage = videoview.getBufferPercentage();
+                        int totalBuffer = bufferPerentage * seekBar_video.getMax();
+
+                        int secondaryProgress = totalBuffer / 100;
+
+                        seekBar_video.setSecondaryProgress(secondaryProgress);
+                    } else {
+                        seekBar_video.setSecondaryProgress(0);
+                    }
+
+                    //自定义监听卡
+                    if (isNetUri) {
+                        int buffer = currentPosition - preCurrentPosition;
+
+                        if (buffer < 300) {
+                            ll_buffer.setVisibility(View.VISIBLE);
+                        } else {
+                            ll_buffer.setVisibility(View.GONE);
+                        }
+                    } else {
+                        ll_buffer.setVisibility(View.GONE);
+                    }
+
+                    preCurrentPosition = currentPosition;
 
                     // 移除消息，循环发送消息，以更新进度
                     removeMessages(PROGRESS);
@@ -479,6 +535,7 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         // 第三方应用
         else if (mUri != null) {
             // 设置播放地址
+            isNetUri = mUtils.isNetUrl(mUri.toString());
             videoview.setVideoURI(mUri);
             tvName.setText(getIntent().getStringExtra("name"));
         } else {
@@ -849,6 +906,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             mHandle.sendEmptyMessage(PROGRESS);
 
             setVideoType(SCREEN_DEFULT);
+
+            // 准备好后隐藏加载效果
+            ll_loading.setVisibility(View.GONE);
 //            videoview.setVideoSize(50, 50);
         }
     }

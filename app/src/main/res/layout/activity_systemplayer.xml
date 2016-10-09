@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -23,5 +23,15 @@
     <include
         layout="@layout/media_controller"/>
 
+    <include android:id="@+id/ll_loading"
+             layout="@layout/video_loading"/>
 
-</FrameLayout>
+
+
+    <include android:id="@+id/ll_buffer"
+             layout="@layout/video_buffer"/>
+
+
+
+
+</RelativeLayout>
