@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -422,10 +421,13 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         if (videoview.isPlaying()) {
             videoview.pause(); // 暂停
             mDanmakuView.pause();
+            ll_buffer.setVisibility(View.GONE);
+            mHandle.removeMessages(SHOW_NET_SPEED);
             btnVideoStartPause.setBackgroundResource(R.drawable.btn_video_start_selector);
         } else {
-            videoview.start(); // 暂停
+            videoview.start(); // 开始
             mDanmakuView.resume();
+            mHandle.sendEmptyMessage(SHOW_NET_SPEED);
             btnVideoStartPause.setBackgroundResource(R.drawable.btn_video_pause_selector);
         }
     }
@@ -473,11 +475,12 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
                     //自定义监听卡
                     if (isNetUri) {
                         int buffer = currentPosition - preCurrentPosition;
-
-                        if (buffer < 300) {
-                            ll_buffer.setVisibility(View.VISIBLE);
-                        } else {
-                            ll_buffer.setVisibility(View.GONE);
+                        if(videoview.isPlaying()) {
+                            if (buffer < 300) {
+                                ll_buffer.setVisibility(View.VISIBLE);
+                            } else {
+                                ll_buffer.setVisibility(View.GONE);
+                            }
                         }
                     } else {
                         ll_buffer.setVisibility(View.GONE);
@@ -648,7 +651,6 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
         topList = new ListView(SystemPlayerActivity.this);
         topList.setBackgroundResource(R.drawable.bg_player_top_control);
         mNetMedias = (ArrayList<NetMedia>) getIntent().getSerializableExtra("netmedialist");
-        Log.e("666", mNetMedias.toString());
         if (mNetMedias != null && mNetMedias.size() > 0) {
             topListAdapter = new MyTopListAdapter(SystemPlayerActivity.this, mNetMedias);
             topList.setAdapter(topListAdapter);
