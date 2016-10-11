@@ -163,7 +163,7 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         if (popMusicWin == null) {
             popMusicWin = new PopupWindow(AudioPlayerActivity.this);
             popMusicWin.setWidth(screenWidth);
-            popMusicWin.setHeight(screenHeight/2);
+            popMusicWin.setHeight(screenHeight / 2);
             popMusicWin.setContentView(popMusicList);
             popMusicWin.setFocusable(true);
             popMusicWin.showAtLocation(activity_audio_player, Gravity.CENTER, 0, 2 * screenHeight / 5);
@@ -274,7 +274,6 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
                         currentPositin = mService.getCurrentPosition();
                         seekBarAudio.setProgress(currentPositin);
 
-
                         // 更新时间
                         audioTime.setText(mUtils.stringForTime(currentPositin) + "/"
                                 + mUtils.stringForTime(mService.getDuration()));
@@ -370,7 +369,6 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         mReceiver = new MyBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MusicPlayerService.OPENAUDIO);
-
         registerReceiver(mReceiver, intentFilter);
 
 
@@ -401,12 +399,44 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            // 歌曲进行更新
-            showProgress();
-            // 更新歌名
-            showData();
-            // 查验播放模式
-            checkPlayMode();
+
+            if (intent.getBooleanExtra("nopre", false)) {
+                try {
+                    mService.pre();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                if (intent.getBooleanExtra("nonext", false)) {
+                    try {
+                        mService.next();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    if (intent.getBooleanExtra("noplayandpause", false)) {
+                        try {
+                            if (mService.isPlaying()) {
+                                mService.pause();
+                                btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_play_selector);
+                            } else {
+                                mService.start();
+                                btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_pause_selector);
+                            }
+
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        // 歌曲进行更新
+                        showProgress();
+                        // 更新歌名
+                        showData();
+                        // 查验播放模式
+                        checkPlayMode();
+                    }
+                }
+            }
 
 
         }

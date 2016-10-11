@@ -7,7 +7,6 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -16,6 +15,7 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.wrk.mymeadiaplayer.IMusicPlayerService;
@@ -24,6 +24,7 @@ import com.wrk.mymeadiaplayer.activity.AudioPlayerActivity;
 import com.wrk.mymeadiaplayer.bean.MediaItem;
 import com.wrk.mymeadiaplayer.util.CacheUtils;
 import com.wrk.mymeadiaplayer.util.MusicUtils;
+import com.wrk.mymeadiaplayer.util.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class MusicPlayerService extends Service {
 
     public static final String OPENAUDIO = "com.wrk.mymobileplayer.broadcast.OPENAUDIO";
     private static final int NOTIFICATION_ID = 1;
+    private static final int UPDATENOTIFICATIONTIME = 0x001;
 
 
     private MediaPlayer mMediaPlayer;
@@ -156,6 +158,9 @@ public class MusicPlayerService extends Service {
             mServie.seekToother(pos);
         }
     };
+    private int requestCode = 0;
+    private RemoteViews bigContentView;
+    private RemoteViews contentView;
 
 
     @Override
@@ -238,6 +243,7 @@ public class MusicPlayerService extends Service {
             //发送广播
             notifyChange(OPENAUDIO);
 
+
         }
     }
 
@@ -248,6 +254,7 @@ public class MusicPlayerService extends Service {
      */
     private void notifyChange(String action) {
         Intent intent = new Intent(action);
+        intent.putExtra("updateprogress", true);
         sendBroadcast(intent);
     }
 
@@ -319,37 +326,75 @@ public class MusicPlayerService extends Service {
         mMediaPlayer.start();
 
         // 弹出通知栏
-        showNotification();
+        showNotification(getCurrentPosition(), true);
 
     }
 
-    private void showNotification() {
+
+    private void showNotification(int currentPosition, boolean isPlaying) {
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Intent intent = new Intent(this, AudioPlayerActivity.class);
-        intent.putExtra("notification", true); // 从状态栏进入音乐播放页面
-        // 延期意图
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = null;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            notification = new Notification.Builder(this)
-                    .setSmallIcon(R.drawable.notification_music_playing)
-                    .setLargeIcon(MusicUtils.getArtwork(this, Long.parseLong(mediaItem.getSongId()), Long.parseLong(mediaItem.getAlbumId()), true))
-                    .setContentTitle("321影音")
-                    .setColor(Color.parseColor("#ff3097fd"))
-                    .setContentText("正在播放:" + getAudioName())
-                    .setContentIntent(pendingIntent)
-                    .build();
-        } else {
-            notification = new Notification.Builder(this)
-                    .setSmallIcon(R.drawable.notification_music_playing)
-                    .setLargeIcon(MusicUtils.getArtwork(this, Long.parseLong(mediaItem.getSongId()), Long.parseLong(mediaItem.getAlbumId()), true))
-                    .setContentTitle("321影音")
-                    .setContentText("正在播放:" + getAudioName())
-                    .setContentIntent(pendingIntent)
-                    .build();
-        }
+            Notification.Builder builder = new Notification.Builder(this);
+            builder.setSmallIcon(R.drawable.notification_music_playing);
 
+            notification = builder.build();
+            bigContentView = new RemoteViews(this.getPackageName(), R.layout.bignotification_layout);
+            bigContentView.setTextViewText(R.id.tv_notifi_artist, mediaItem.getArtist());
+            bigContentView.setTextViewText(R.id.tv_notifi_name, mediaItem.getName());
+            bigContentView.setTextViewText(R.id.tv_notifi_time, new Utils().stringForTime(currentPosition));
+            bigContentView.setImageViewBitmap(R.id.iv_notifi_cover, MusicUtils.getArtwork(this, Long.parseLong(mediaItem.getSongId()), Long.parseLong(mediaItem.getAlbumId()), true));
+
+
+            if (isPlaying) {
+                bigContentView.setImageViewResource(R.id.iv_notifi_play_pause, R.drawable.uamp_ic_pause_white_48dp);
+            } else {
+                bigContentView.setImageViewResource(R.id.iv_notifi_play_pause, R.drawable.uamp_ic_play_arrow_white_48dp);
+            }
+
+            // Notification的返回Activity
+            Intent activityIntent = new Intent(this, AudioPlayerActivity.class);
+            activityIntent.putExtra("notification", true); // 从状态栏进入音乐播放页面
+            PendingIntent activityPIntent = PendingIntent.getActivity(this, requestCode, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            bigContentView.setOnClickPendingIntent(R.id.iv_notifi_cover, activityPIntent);
+            bigContentView.setOnClickPendingIntent(R.id.tv_notifi_artist, activityPIntent);
+            bigContentView.setOnClickPendingIntent(R.id.ll_nitifi_top, activityPIntent);
+
+
+
+            // Notification的上一首
+            Intent preIntent = new Intent(OPENAUDIO);
+            preIntent.putExtra("nopre", true);
+            PendingIntent prePIntent = PendingIntent.getBroadcast(this, requestCode + 1, preIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            bigContentView.setOnClickPendingIntent(R.id.iv_notifi_pre, prePIntent);
+            // Notification的下一首
+            Intent nextIntent = new Intent(OPENAUDIO);
+            nextIntent.putExtra("nonext", true);
+            PendingIntent nextPIntent = PendingIntent.getBroadcast(this, requestCode + 2, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            bigContentView.setOnClickPendingIntent(R.id.iv_notifi_next, nextPIntent);
+            //  Notification的播放与暂停
+            Intent playandpauseIntent = new Intent(OPENAUDIO);
+            playandpauseIntent.putExtra("noplayandpause", true);
+            PendingIntent playandPausePIntent = PendingIntent.getBroadcast(this, requestCode + 3, playandpauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            bigContentView.setOnClickPendingIntent(R.id.iv_notifi_play_pause, playandPausePIntent);
+
+
+            // contentView
+            contentView = new RemoteViews(this.getPackageName(), R.layout.normalnotification_layout);
+            contentView.setTextViewText(R.id.tv_normal_artist, mediaItem.getArtist());
+            contentView.setTextViewText(R.id.tv_normal_name, mediaItem.getName());
+            contentView.setTextViewText(R.id.tv_normal_time, new Utils().stringForTime(currentPosition));
+            contentView.setImageViewBitmap(R.id.iv_normal_cover, MusicUtils.getArtwork(this, Long.parseLong(mediaItem.getSongId()), Long.parseLong(mediaItem.getAlbumId()), true));
+            contentView.setOnClickPendingIntent(R.id.iv_normal_play_pause, playandPausePIntent);
+            contentView.setOnClickPendingIntent(R.id.ll_normal_mid, activityPIntent);
+            contentView.setOnClickPendingIntent(R.id.iv_normal_cover, activityPIntent);
+            contentView.setOnClickPendingIntent(R.id.tv_normal_time, activityPIntent);
+
+            notification.bigContentView = bigContentView;
+            notification.contentView = contentView;
+
+        }
 
         notification.flags = Notification.FLAG_ONGOING_EVENT;// 点击不会取消
 
@@ -361,9 +406,7 @@ public class MusicPlayerService extends Service {
      */
     private void pause() {
         mMediaPlayer.pause();
-
-        // 隐藏通知栏
-        mNotificationManager.cancel(NOTIFICATION_ID);
+        showNotification(getCurrentPosition(), false);
     }
 
     /**
@@ -428,6 +471,9 @@ public class MusicPlayerService extends Service {
      * @return
      */
     private int getCurrentPosition() {
+        if (mMediaPlayer.isPlaying()) {
+            showNotification(mMediaPlayer.getCurrentPosition(), true);
+        }
         return mMediaPlayer.getCurrentPosition();
     }
 
@@ -582,11 +628,6 @@ public class MusicPlayerService extends Service {
 
     private void seekToother(int pos) {
         openAudio(pos);
-    }
-
-
-    private ArrayList getMusicList() {
-        return mMediaItems;
     }
 
 

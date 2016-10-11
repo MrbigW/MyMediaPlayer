@@ -10,10 +10,8 @@ import android.os.ParcelFileDescriptor;
 
 import com.wrk.mymeadiaplayer.R;
 
-import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -69,6 +67,7 @@ public class MusicUtils {
                 } else if (allowdefault) {
                     bm = getDefaultArtwork(context);
                 }
+
                 return bm;
             } finally {
                 try {
@@ -89,38 +88,31 @@ public class MusicUtils {
         String path = null;
 
         //这里是缓存路径，根据你的项目自己修改
-        File cacheDir = context.getFilesDir();
-        File f = new File(cacheDir, songid + "_capture.jpg");
-        if (f.exists()) {
-            bm = BitmapFactory.decodeFile(f.getAbsolutePath());
-        } else {
 
-            if (albumid < 0 && songid < 0) {
-                throw new IllegalArgumentException("Must specify an album or a song id");
-            }
-            try {
-                if (albumid < 0) {
-                    Uri uri = Uri.parse("content://media/external/audio/media/" + songid + "/albumart");
-                    ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
-                    if (pfd != null) {
-                        FileDescriptor fd = pfd.getFileDescriptor();
-                        bm = BitmapFactory.decodeFileDescriptor(fd);
-                    }
-                } else {
-                    Uri uri = ContentUris.withAppendedId(sArtworkUri, albumid);
-                    ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
-                    if (pfd != null) {
-                        FileDescriptor fd = pfd.getFileDescriptor();
-                        bm = BitmapFactory.decodeFileDescriptor(fd);
-                    }
-                }
-            } catch (FileNotFoundException ex) {
 
-            }
-            if (bm != null) {
-                saveBitmap(context, bm, String.valueOf(songid));
-            }
+        if (albumid < 0 && songid < 0) {
+            throw new IllegalArgumentException("Must specify an album or a song id");
         }
+        try {
+            if (albumid < 0) {
+                Uri uri = Uri.parse("content://media/external/audio/media/" + songid + "/albumart");
+                ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+                if (pfd != null) {
+                    FileDescriptor fd = pfd.getFileDescriptor();
+                    bm = BitmapFactory.decodeFileDescriptor(fd);
+                }
+            } else {
+                Uri uri = ContentUris.withAppendedId(sArtworkUri, albumid);
+                ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+                if (pfd != null) {
+                    FileDescriptor fd = pfd.getFileDescriptor();
+                    bm = BitmapFactory.decodeFileDescriptor(fd);
+                }
+            }
+        } catch (FileNotFoundException ex) {
+
+        }
+
         return bm;
     }
 
@@ -129,28 +121,6 @@ public class MusicUtils {
         opts.inPreferredConfig = Bitmap.Config.RGB_565;
         return BitmapFactory.decodeStream(
                 context.getResources().openRawResource(R.raw.audio_defalut), null, opts);
-    }
-
-    /**
-     * 保存缩略图
-     */
-    public static void saveBitmap(Context context, Bitmap bitmap, String Name) {
-        //这里是缓存路径，根据你的项目自己修改
-        File cacheDir = context.getFilesDir();
-        File f = new File(cacheDir, Name + "_capture.jpg");
-        if (f.exists()) {
-            f.delete();
-        }
-        try {
-            FileOutputStream out = new FileOutputStream(f);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-            out.flush();
-            out.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 

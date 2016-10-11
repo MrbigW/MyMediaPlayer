@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="64dp"
+              android:background="@drawable/bg_player_loading_background"
+              android:orientation="horizontal">
+
+
+    <ImageView
+        android:id="@+id/iv_normal_cover"
+        android:layout_width="63dp"
+        android:layout_height="63dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/audio_defalut"/>
+
+    <LinearLayout
+        android:id="@+id/ll_normal_mid"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_normal_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="5dp"
+            android:maxLines="1"
+            android:text="beiji beijin"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/tv_normal_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:maxLines="1"
+            android:text="汪半壁"
+            android:textColor="#c9c5c5"
+            android:textSize="15sp"/>
+    </LinearLayout>
+
+    <ImageView
+        android:scaleType="center"
+        android:id="@+id/iv_normal_play_pause"
+        android:layout_width="80dp"
+        android:layout_weight="0"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:src="@drawable/uamp_ic_pause_white_48dp"/>
+
+    <TextView
+        android:paddingTop="5dp"
+        android:paddingRight="5dp"
+        android:id="@+id/tv_normal_time"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:maxLines="1"
+        android:text="00:00"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"/>
+
+
+</LinearLayout>
