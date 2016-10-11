@@ -18,6 +18,46 @@ public class MediaItem implements Serializable {
     private String artist;
     private String data;
 
+    public String getDec() {
+        return dec;
+    }
+
+    public void setDec(String dec) {
+        this.dec = dec;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    private String dec;
+
+    private String imageUrl;
+
+    private String songId;
+    private String albumId;
+
+
+    public String getSongId() {
+        return songId;
+    }
+
+    public void setSongId(String songId) {
+        this.songId = songId;
+    }
+
+    public String getAlbumId() {
+        return albumId;
+    }
+
+    public void setAlbumId(String albumId) {
+        this.albumId = albumId;
+    }
+
     public MediaItem() {
     }
 
@@ -77,6 +117,9 @@ public class MediaItem implements Serializable {
                 ", size=" + size +
                 ", artist='" + artist + '\'' +
                 ", data='" + data + '\'' +
+                ", dec='" + dec + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
+
 }

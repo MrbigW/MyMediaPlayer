@@ -35,6 +35,19 @@
         </activity>
         <activity android:name=".activity.SearchActivity">
         </activity>
+        <activity
+            android:name=".activity.AudioPlayerActivity"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Black.NoTitleBar">
+        </activity>
+
+        <service android:name=".service.MusicPlayerService">
+            <intent-filter>
+                <action android:name="com.wrk.mymeadiaplayer.service.MusicPlayerService"/>
+            </intent-filter>
+
+        </service>
+
     </application>
 
 </manifest>
