@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -102,7 +101,6 @@ public class AudioFrament extends BaseFragment {
             bundle.putSerializable("medialist", mItems);
             intent.putExtra("pos", position);
             intent.putExtras(bundle);
-
             mContext.startActivity(intent);
 
         }
@@ -149,7 +147,6 @@ public class AudioFrament extends BaseFragment {
                         mediaItem.setSongId(cursor.getString(5));
                         mediaItem.setAlbumId(cursor.getString(6));
                         mItems.add(mediaItem);
-                        Log.e("111", mediaItem.toString());
                     }
 
                     cursor.close();

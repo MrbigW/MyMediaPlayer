@@ -3,22 +3,33 @@ package com.wrk.mymeadiaplayer.activity;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.wrk.mymeadiaplayer.IMusicPlayerService;
 import com.wrk.mymeadiaplayer.R;
+import com.wrk.mymeadiaplayer.adapter.MyMusicListAdapter;
 import com.wrk.mymeadiaplayer.bean.MediaItem;
 import com.wrk.mymeadiaplayer.service.MusicPlayerService;
 import com.wrk.mymeadiaplayer.util.Utils;
@@ -32,7 +43,14 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
      */
     private static final int PROGRESS = 0x001;
 
+    private int screenWidth;
+    private int screenHeight;
+
     private ArrayList<MediaItem> mMediaItems;
+
+    // 列表弹窗
+    private PopupWindow popMusicWin;
+    private ListView popMusicList;
 
 
     private TextView tvArtist;
@@ -44,6 +62,7 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
     private Button btnAudioStartPause;
     private Button btnAudioNext;
     private Button btnAudioList;
+    private RelativeLayout activity_audio_player;
 
 
     private Utils mUtils;
@@ -58,7 +77,7 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
     private void findViews() {
 
         setContentView(R.layout.activity_audioplayer);
-
+        activity_audio_player = (RelativeLayout) findViewById(R.id.activity_audio_player);
         tvArtist = (TextView) findViewById(R.id.tv_artist);
         tvAudioName = (TextView) findViewById(R.id.tv_audioName);
         audioTime = (TextView) findViewById(R.id.audioTime);
@@ -136,8 +155,24 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
             }
 
         } else if (v == btnAudioList) {
-
+            showPopMusicList();
         }
+    }
+
+    private void showPopMusicList() {
+        if (popMusicWin == null) {
+            popMusicWin = new PopupWindow(AudioPlayerActivity.this);
+            popMusicWin.setWidth(screenWidth);
+            popMusicWin.setHeight(screenHeight/2);
+            popMusicWin.setContentView(popMusicList);
+            popMusicWin.setFocusable(true);
+            popMusicWin.showAtLocation(activity_audio_player, Gravity.CENTER, 0, 2 * screenHeight / 5);
+        }
+
+        if (!popMusicWin.isShowing() && popMusicWin.isFocusable()) {
+            popMusicWin.showAtLocation(activity_audio_player, Gravity.CENTER, 0, 2 * screenHeight / 5);
+        }
+
     }
 
     private void changePlayMode() {
@@ -308,6 +343,12 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 得到屏幕的宽和高
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+        screenWidth = outMetrics.widthPixels;
+        screenHeight = outMetrics.heightPixels;
+
         initData();
 
         findViews();
@@ -321,7 +362,8 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
 
     private void initData() {
 
-        // 得到列表数据
+        // 得到传过来的列表数据
+        mMediaItems = new ArrayList<>();
 
 
         // 注册广播
@@ -332,6 +374,13 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         registerReceiver(mReceiver, intentFilter);
 
 
+    }
+
+    private void dismissPopMusicList() {
+        if (popMusicWin != null && popMusicWin.isShowing()) {
+            popMusicWin.dismiss();
+            popMusicWin = null;
+        }
     }
 
     public void setData(MediaItem mediaItem) {
@@ -358,6 +407,8 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
             showData();
             // 查验播放模式
             checkPlayMode();
+
+
         }
     }
 
@@ -402,7 +453,48 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
 
         if (!isFromNotification) {
             position = getIntent().getIntExtra("pos", 0); // 列表
+            mMediaItems = (ArrayList<MediaItem>) getIntent().getSerializableExtra("medialist");
+        } else {
+
+            mMediaItems = new ArrayList<MediaItem>();
+            String[] objs = new String[]{
+                    MediaStore.Audio.Media.DISPLAY_NAME,// 在sdCard的名称
+            };
+            ContentResolver resolver = AudioPlayerActivity.this.getContentResolver();
+            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            Cursor cursor = resolver.query(uri, objs, null, null, null);
+
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    String name = cursor.getString(0);
+                    MediaItem mediaItem = new MediaItem();
+                    mediaItem.setName(name);
+                    mMediaItems.add(mediaItem);
+                }
+                cursor.close();
+            }
         }
+
+        if (mMediaItems != null && mMediaItems.size() > 0) {
+            popMusicList = new ListView(AudioPlayerActivity.this);
+            popMusicList.setAdapter(new MyMusicListAdapter(AudioPlayerActivity.this, mMediaItems));
+
+            popMusicList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    try {
+                        mService.seekToother(position);
+
+                        dismissPopMusicList();
+
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+        }
+
 
     }
 
@@ -419,6 +511,8 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
             unregisterReceiver(mReceiver);
             mReceiver = null;
         }
+
+        dismissPopMusicList();
 
         super.onDestroy();
     }

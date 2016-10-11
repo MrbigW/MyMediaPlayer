@@ -95,5 +95,10 @@ interface IMusicPlayerService {
             */
            String getAudioPath();
 
+           /**
+           *  跳转到某一首
+           */
+           void seekToother(int pos);
+
 
 }

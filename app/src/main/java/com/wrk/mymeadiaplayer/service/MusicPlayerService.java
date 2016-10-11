@@ -150,6 +150,11 @@ public class MusicPlayerService extends Service {
         public String getAudioPath() throws RemoteException {
             return mediaItem.getData();
         }
+
+        @Override
+        public void seekToother(int pos) throws RemoteException {
+            mServie.seekToother(pos);
+        }
     };
 
 
@@ -573,6 +578,17 @@ public class MusicPlayerService extends Service {
         }
 
     }
+
+
+    private void seekToother(int pos) {
+        openAudio(pos);
+    }
+
+
+    private ArrayList getMusicList() {
+        return mMediaItems;
+    }
+
 
 }
 
