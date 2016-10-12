@@ -400,9 +400,16 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         public void onReceive(Context context, Intent intent) {
 
 
-            if (intent.getBooleanExtra("nopre", false)) {
+            if (intent.getBooleanExtra("noplayandpause", false)) {
                 try {
-                    mService.pre();
+                    if (mService.isPlaying()) {
+                        mService.pause();
+                        btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_play_selector);
+                    } else {
+                        mService.start();
+                        btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_pause_selector);
+                    }
+
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -414,16 +421,9 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
                         e.printStackTrace();
                     }
                 } else {
-                    if (intent.getBooleanExtra("noplayandpause", false)) {
+                    if (intent.getBooleanExtra("nopre", false)) {
                         try {
-                            if (mService.isPlaying()) {
-                                mService.pause();
-                                btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_play_selector);
-                            } else {
-                                mService.start();
-                                btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_pause_selector);
-                            }
-
+                            mService.pre();
                         } catch (RemoteException e) {
                             e.printStackTrace();
                         }

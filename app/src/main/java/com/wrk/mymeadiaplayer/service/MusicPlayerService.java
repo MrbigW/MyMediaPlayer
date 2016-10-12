@@ -362,7 +362,6 @@ public class MusicPlayerService extends Service {
             bigContentView.setOnClickPendingIntent(R.id.ll_nitifi_top, activityPIntent);
 
 
-
             // Notification的上一首
             Intent preIntent = new Intent(OPENAUDIO);
             preIntent.putExtra("nopre", true);
@@ -386,10 +385,21 @@ public class MusicPlayerService extends Service {
             contentView.setTextViewText(R.id.tv_normal_name, mediaItem.getName());
             contentView.setTextViewText(R.id.tv_normal_time, new Utils().stringForTime(currentPosition));
             contentView.setImageViewBitmap(R.id.iv_normal_cover, MusicUtils.getArtwork(this, Long.parseLong(mediaItem.getSongId()), Long.parseLong(mediaItem.getAlbumId()), true));
+
+
+            PendingIntent sapPIntent = PendingIntent.getBroadcast(this, requestCode + 4, playandpauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            contentView.setOnClickPendingIntent(R.id.iv_notifi_play_pause, sapPIntent);
+
             contentView.setOnClickPendingIntent(R.id.iv_normal_play_pause, playandPausePIntent);
             contentView.setOnClickPendingIntent(R.id.ll_normal_mid, activityPIntent);
             contentView.setOnClickPendingIntent(R.id.iv_normal_cover, activityPIntent);
             contentView.setOnClickPendingIntent(R.id.tv_normal_time, activityPIntent);
+
+            if (isPlaying) {
+                contentView.setImageViewResource(R.id.iv_normal_play_pause, R.drawable.uamp_ic_pause_white_48dp);
+            } else {
+                contentView.setImageViewResource(R.id.iv_normal_play_pause, R.drawable.uamp_ic_play_arrow_white_48dp);
+            }
 
             notification.bigContentView = bigContentView;
             notification.contentView = contentView;
@@ -631,6 +641,11 @@ public class MusicPlayerService extends Service {
     }
 
 
+    @Override
+    public void onDestroy() {
+        mNotificationManager.cancel(NOTIFICATION_ID);
+        super.onDestroy();
+    }
 }
 
 
