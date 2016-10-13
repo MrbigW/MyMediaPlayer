@@ -79,6 +79,10 @@ public class HomeFragment extends BaseFragment {
                 mContents.add(new HomeDataFragment());
             } else if (title.equals("Recy")) {
                 mContents.add(new RecyDataFragment());
+            } else if (title.equals("剧情")) {
+                mContents.add(new NetVideoFrament());
+            } else if (title.equals("爱情")) {
+                mContents.add(new NetAudioFrament());
             } else {
                 VpSimpleFragment vpSimpleFragment = VpSimpleFragment.newInstance(title);
                 mContents.add(vpSimpleFragment);

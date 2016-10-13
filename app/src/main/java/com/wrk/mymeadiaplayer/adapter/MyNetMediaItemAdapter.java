@@ -64,10 +64,6 @@ public class MyNetMediaItemAdapter extends BaseAdapter {
     private ImageOptions imageOptions;
     private Utils utils;
 
-    public void onDataChange(List<NetMediaItem> list) {
-        this.mItems = (ArrayList<NetMediaItem>) list;
-        this.notifyDataSetChanged();
-    }
 
     public MyNetMediaItemAdapter(Context context, ArrayList<NetMediaItem> data) {
         this.mContext = context;
@@ -177,7 +173,6 @@ public class MyNetMediaItemAdapter extends BaseAdapter {
                 break;
             case TYPE_TEXT:
                 convertView = View.inflate(mContext, R.layout.all_text_item, null);
-
                 break;
             case TYPE_GIF:
                 convertView = View.inflate(mContext, R.layout.all_gif_item, null);
