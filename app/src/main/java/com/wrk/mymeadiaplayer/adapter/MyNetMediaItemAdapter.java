@@ -64,6 +64,11 @@ public class MyNetMediaItemAdapter extends BaseAdapter {
     private ImageOptions imageOptions;
     private Utils utils;
 
+    public void onDataChange(List<NetMediaItem> list) {
+        this.mItems = (ArrayList<NetMediaItem>) list;
+        this.notifyDataSetChanged();
+    }
+
     public MyNetMediaItemAdapter(Context context, ArrayList<NetMediaItem> data) {
         this.mContext = context;
         this.mItems = data;
@@ -75,6 +80,7 @@ public class MyNetMediaItemAdapter extends BaseAdapter {
                 .setFailureDrawableId(R.drawable.bg_item)
                 .build();
     }
+
 
     @Override
     public int getCount() {

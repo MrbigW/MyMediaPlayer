@@ -10,6 +10,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.cjj.MaterialRefreshLayout;
+import com.cjj.MaterialRefreshListener;
 import com.google.gson.Gson;
 import com.wrk.mymeadiaplayer.R;
 import com.wrk.mymeadiaplayer.adapter.MyNetMediaItemAdapter;
@@ -34,6 +36,8 @@ import java.util.ArrayList;
  */
 
 public class NetVideoFrament extends BaseFragment {
+
+    private MaterialRefreshLayout netvideo_refresh;
 
     public static final String NETMEADIAURLPATH = "http://s.budejie.com/topic/list/jingxuan/1/budejie-android-6.2.8/0-20.json?market=baidu&udid=863425026599592&appname=baisibudejie&os=4.2.2&client=android&visiting=&mac=98%3A6c%3Af5%3A4b%3A72%3A6d&ver=6.2.8";
 
@@ -64,8 +68,26 @@ public class NetVideoFrament extends BaseFragment {
         lv_netvideo = (ListView) view.findViewById(R.id.lv_netvideo);
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
         tv_nodata = (TextView) view.findViewById(R.id.tv_nodata);
+        netvideo_refresh = (MaterialRefreshLayout) view.findViewById(R.id.netvideo_refresh);
+
+        // 设置下拉刷新的监听和加载更多的监听
+        netvideo_refresh.setMaterialRefreshListener(new MyMaterialRefreshListener());
 
         return view;
+    }
+
+    class MyMaterialRefreshListener extends MaterialRefreshListener {
+
+        @Override
+        public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
+            getDataFromNet();
+        }
+
+        @Override
+        public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
+            super.onRefreshLoadMore(materialRefreshLayout);
+        }
+
     }
 
     /**
@@ -137,7 +159,6 @@ public class NetVideoFrament extends BaseFragment {
 
             //设置适配器
             mAdapter = new MyNetMediaItemAdapter(mContext, mItems);
-
             lv_netvideo.setAdapter(mAdapter);
 
         } else {
@@ -147,7 +168,10 @@ public class NetVideoFrament extends BaseFragment {
 
         progressBar.setVisibility(View.GONE);
 
+        // 把下拉刷新的状态还原
+        netvideo_refresh.finishRefresh();
     }
+
 
     private ArrayList<NetMediaItem> parsedJson(String result) {
 
