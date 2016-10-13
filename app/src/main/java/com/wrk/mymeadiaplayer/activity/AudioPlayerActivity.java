@@ -371,7 +371,6 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         intentFilter.addAction(MusicPlayerService.OPENAUDIO);
         registerReceiver(mReceiver, intentFilter);
 
-
     }
 
     private void dismissPopMusicList() {
@@ -400,44 +399,12 @@ public class AudioPlayerActivity extends Activity implements View.OnClickListene
         public void onReceive(Context context, Intent intent) {
 
 
-            if (intent.getBooleanExtra("noplayandpause", false)) {
-                try {
-                    if (mService.isPlaying()) {
-                        mService.pause();
-                        btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_play_selector);
-                    } else {
-                        mService.start();
-                        btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_pause_selector);
-                    }
-
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                if (intent.getBooleanExtra("nonext", false)) {
-                    try {
-                        mService.next();
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    if (intent.getBooleanExtra("nopre", false)) {
-                        try {
-                            mService.pre();
-                        } catch (RemoteException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        // 歌曲进行更新
-                        showProgress();
-                        // 更新歌名
-                        showData();
-                        // 查验播放模式
-                        checkPlayMode();
-                    }
-                }
-            }
-
+            // 歌曲进行更新
+            showProgress();
+            // 更新歌名
+            showData();
+            // 查验播放模式
+            checkPlayMode();
 
         }
     }

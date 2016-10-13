@@ -4,8 +4,11 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -41,6 +44,8 @@ public class MusicPlayerService extends Service {
 
 
     public static final String OPENAUDIO = "com.wrk.mymobileplayer.broadcast.OPENAUDIO";
+    public static final String NOTIOPENAUDIO = "com.wrk.mymobileplayer.broadcast.NOTIOPENAUDIO";
+
     private static final int NOTIFICATION_ID = 1;
     private static final int UPDATENOTIFICATIONTIME = 0x001;
 
@@ -52,6 +57,9 @@ public class MusicPlayerService extends Service {
     private int position; // 当前位置
 
     private MediaItem mediaItem; // 当前音频
+
+
+    private MyBroadcastReceiver mReceiver;
 
 
     // 通知栏
@@ -168,6 +176,12 @@ public class MusicPlayerService extends Service {
         super.onCreate();
 
         playMode = CacheUtils.getPlayMode(this, "playmode");
+
+        // 注册广播
+        mReceiver = new MyBroadcastReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(MusicPlayerService.NOTIOPENAUDIO);
+        registerReceiver(mReceiver, intentFilter);
 
         getData();
 
@@ -363,17 +377,17 @@ public class MusicPlayerService extends Service {
 
 
             // Notification的上一首
-            Intent preIntent = new Intent(OPENAUDIO);
+            Intent preIntent = new Intent(NOTIOPENAUDIO);
             preIntent.putExtra("nopre", true);
             PendingIntent prePIntent = PendingIntent.getBroadcast(this, requestCode + 1, preIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             bigContentView.setOnClickPendingIntent(R.id.iv_notifi_pre, prePIntent);
             // Notification的下一首
-            Intent nextIntent = new Intent(OPENAUDIO);
+            Intent nextIntent = new Intent(NOTIOPENAUDIO);
             nextIntent.putExtra("nonext", true);
             PendingIntent nextPIntent = PendingIntent.getBroadcast(this, requestCode + 2, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             bigContentView.setOnClickPendingIntent(R.id.iv_notifi_next, nextPIntent);
             //  Notification的播放与暂停
-            Intent playandpauseIntent = new Intent(OPENAUDIO);
+            Intent playandpauseIntent = new Intent(NOTIOPENAUDIO);
             playandpauseIntent.putExtra("noplayandpause", true);
             PendingIntent playandPausePIntent = PendingIntent.getBroadcast(this, requestCode + 3, playandpauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             bigContentView.setOnClickPendingIntent(R.id.iv_notifi_play_pause, playandPausePIntent);
@@ -631,6 +645,32 @@ public class MusicPlayerService extends Service {
             }
         } else {
             position--;
+        }
+
+    }
+
+
+    class MyBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getBooleanExtra("noplayandpause", false)) {
+                if (mMediaPlayer.isPlaying()) {
+                    pause();
+                } else {
+                    start();
+                }
+            } else {
+                if (intent.getBooleanExtra("nonext", false)) {
+                    next();
+                } else {
+                    if (intent.getBooleanExtra("nopre", false)) {
+                        pre();
+                    }
+                }
+            }
+
+
         }
 
     }

@@ -220,7 +220,9 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
             mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoExit) {
-            // Handle clicks for btnVideoExit
+
+            finish();
+
             mHandle.removeMessages(HIDE_MEDIACONTROLL);
             mHandle.sendEmptyMessageDelayed(HIDE_MEDIACONTROLL, 3500);
         } else if (v == btnVideoPre) {
@@ -1005,8 +1007,8 @@ public class SystemPlayerActivity extends Activity implements View.OnClickListen
             // 如果是最后一个，下一个不可点
 
         } else if (mUri != null) {
-            setIsEnableButton(false);
-        }
+            setIsEnableButton(false);}
+
     }
 
     private void setIsEnableButton(boolean enable) {
